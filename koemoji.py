@@ -765,7 +765,7 @@ def get_status_display():
 def display_menu():
     """メニューを表示"""
     print("=" * 40)
-    print("     KoeMojiAuto コマンドライン")
+    print(" KoeMojiAuto ")
     print("=" * 40)
     print(f"状態: {get_status_display()}")
     print("-" * 40)
