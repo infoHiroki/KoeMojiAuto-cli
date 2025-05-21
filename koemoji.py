@@ -543,12 +543,12 @@ def clear_screen():
     
     if IS_WINDOWS:
         os.system('cls')
-        # Windowsでタイトルを設定（状態を含める）
-        os.system(f'title KoeMojiAuto CLI - 文字起こしマネージャー [{status}]')
+        # Windowsでタイトルを設定（シンプルなタイトル）
+        os.system(f'title KoeMoji-{status}')
     else:
         os.system('clear')
-        # Linux/Macではエスケープシーケンスでタイトル設定（対応端末のみ）
-        print(f"\033]0;KoeMojiAuto CLI [{status}]\007", end="")
+        # Linux/Macではエスケープシーケンスでタイトル設定
+        print(f"\033]0;KoeMoji-{status}\007", end="")
 
 def show_recent_logs(lines=7):
     """最新のログを表示"""
