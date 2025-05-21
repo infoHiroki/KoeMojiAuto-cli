@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create Release Archive
+      run: |
+        mkdir KoemojiAuto-${{ github.ref_name }}
+        cp -r * KoemojiAuto-${{ github.ref_name }}/ || true
+        tar -czf KoemojiAuto-${{ github.ref_name }}.tar.gz KoemojiAuto-${{ github.ref_name }}
+        zip -r KoemojiAuto-${{ github.ref_name }}.zip KoemojiAuto-${{ github.ref_name }}
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          KoemojiAuto-${{ github.ref_name }}.tar.gz
+          KoemojiAuto-${{ github.ref_name }}.zip
+        body: |
+          KoemojiAuto ${{ github.ref_name }}
+          
+          ## 変更点
+          - WebUIの追加
+          - ログベースのサマリー表示
+          - Windows/macOS/Linux対応
+          
+          ## インストール
+          詳細は[INSTALL.md](INSTALL.md)をご覧ください。
+        draft: false
+        prerelease: false

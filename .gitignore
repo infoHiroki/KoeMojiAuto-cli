@@ -1,0 +1,66 @@
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+
+# Audio/Video input files
+input/*
+!input/.gitkeep
+
+# Output files
+output/*
+!output/.gitkeep
+
+# Archive folder
+archive/*
+!archive/.gitkeep
+
+# Whisper models (too large for GitHub)
+models/
+*.bin
+*.pt
+
+# Runtime files
+*.pid
+stop_koemoji.flag
+processed_files.json
+
+# Local configuration
+config.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+temp/
+tmp/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

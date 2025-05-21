@@ -1,0 +1,11 @@
+{
+  "whisper_model": "large",
+  "input_folder": "input",
+  "output_folder": "output",
+  "archive_folder": "archive",
+  "language": "ja",
+  "scan_interval_minutes": 30,
+  "max_concurrent_files": 3,
+  "max_cpu_percent": 95,
+  "compute_type": "int8"
+}
