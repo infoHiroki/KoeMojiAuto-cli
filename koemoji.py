@@ -667,9 +667,8 @@ def stop_processing():
     # ログに停止を記録
     log_and_print("文字起こし処理を停止しました", "info", print_console=False)
     
-    # 処理スレッドが終了するのを少し待つ
-    if processing_thread and processing_thread.is_alive():
-        processing_thread.join(timeout=5)
+    # CLI側で待機を行うため、ここでは待機しない
+    # (終了コマンドの場合はデーモンスレッドとして自動終了する)
     
     return True#=======================================================================
 # CLI インターフェース
@@ -799,7 +798,22 @@ def display_cli():
                 if not is_running:
                     print("すでに停止しています")
                 else:
-                    if stop_processing():
+                    print("停止中です...")
+                    
+                    # 停止処理を実行
+                    stop_result = stop_processing()
+                    
+                    # 停止処理中の待機（スレッド終了を待機）
+                    if processing_thread and processing_thread.is_alive():
+                        for i in range(5):  # 5秒間待機
+                            time.sleep(1)
+                            print(f"停止中です{'.' * (i+1)}")
+                            
+                            # スレッドが終了したら待機ループを抜ける
+                            if not processing_thread.is_alive():
+                                break
+                    
+                    if stop_result:
                         print("文字起こし処理を停止しました")
                     else:
                         print("処理の停止に失敗しました")
@@ -816,7 +830,15 @@ def display_cli():
             elif choice == "0":
                 # 実行中なら停止処理
                 if is_running:
+                    print("停止中です...")
                     stop_processing()
+                    
+                    # 停止処理中の待機表示
+                    if processing_thread and processing_thread.is_alive():
+                        for i in range(3):  # 終了前なので短めに
+                            time.sleep(1)
+                            print(f"停止中です{'.' * (i+1)}")
+                
                 print("\nプログラムを終了します...")
                 sys.exit(0)  # プロセスを確実に終了
             else:
