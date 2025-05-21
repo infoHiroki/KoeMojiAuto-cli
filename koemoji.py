@@ -415,7 +415,9 @@ def process_queued_files():
             process_file(file_path)
     
     except Exception as e:
-        log_and_print(f"キュー処理中にエラーが発生しました: {e}", "error")def process_file(file_path):
+        log_and_print(f"キュー処理中にエラーが発生しました: {e}", "error")
+
+def process_file(file_path):
     """ファイルを処理する"""
     global files_in_process
     
@@ -528,7 +530,9 @@ def run_main_process():
             os.remove(STOP_FLAG_FILE)
             log_and_print("停止フラグを削除しました")
         
-        log_and_print("KoemojiAutoを終了しました")#=======================================================================
+        log_and_print("KoemojiAutoを終了しました")
+
+#=======================================================================
 # CLI インターフェース
 #=======================================================================
 
