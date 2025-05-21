@@ -165,19 +165,28 @@ def setup_logging(log_file='koemoji.log', level=logging.INFO):
     
     return logger
 
-def log_and_print(message, level="info", print_console=True):
-    """ログとコンソールの両方に出力（print_console=Falseでログのみ）"""
+def log_and_print(message, level="info", category=None, print_console=True):
+    """ログとコンソールの両方に出力（print_console=Falseでログのみ）
+    
+    カテゴリを指定すると「[カテゴリ] メッセージ」の形式で出力されます。
+    カテゴリの例: システム, ファイル, 処理, モデル
+    """
     global logger
     
     if logger is None:
         logger = setup_logging()
     
+    # カテゴリが指定されている場合はフォーマットを適用
+    formatted_message = message
+    if category:
+        formatted_message = f"[{category}] {message}"
+    
     if level == "info":
-        logger.info(message)
+        logger.info(formatted_message)
     elif level == "error":
-        logger.error(message)
+        logger.error(formatted_message)
     elif level == "warning":
-        logger.warning(message)
+        logger.warning(formatted_message)
     elif level == "debug":
         logger.debug(message)
         return  # デバッグメッセージはコンソールには出さない
@@ -313,24 +322,24 @@ def transcribe_audio(file_path):
             model_config != (model_size, compute_type)):
             # モデルロード前に再度停止要求をチェック
             if stop_requested:
-                log_and_print("停止要求を検出したため、モデルロードをキャンセルします", "info", print_console=False)
+                log_and_print("モデルロードをキャンセル（停止要求）", category="モデル", print_console=False)
                 return None
                 
-            log_and_print(f"Whisperモデルをロード中: {model_size}", print_console=False)
+            log_and_print(f"モデルロード: Whisper {model_size}", category="モデル", print_console=False)
             whisper_model = WhisperModel(model_size, compute_type=compute_type)
             model_config = (model_size, compute_type)
             
             # モデルロード後にも停止要求をチェック
             if stop_requested:
-                log_and_print("停止要求を検出したため、文字起こしをキャンセルします", "info", print_console=False)
+                log_and_print("処理をキャンセル（停止要求）", category="モデル", print_console=False)
                 return None
         
         # 文字起こし開始前に再度停止要求をチェック
         if stop_requested:
-            log_and_print("停止要求を検出したため、文字起こしをキャンセルします", "info", print_console=False)
+            log_and_print("処理をキャンセル（停止要求）", category="処理", print_console=False)
             return None
             
-        log_and_print(f"文字起こし開始: {file_name}", print_console=False)
+        log_and_print(f"音声認識開始: {file_name}", category="処理", print_console=False)
         
         # 文字起こし実行
         segments, info = whisper_model.transcribe(
@@ -351,7 +360,7 @@ def transcribe_audio(file_path):
             
             # 10セグメントごとに進捗をログに記録
             if segment_count % 10 == 0:
-                log_and_print(f"文字起こし進行中: {file_name} - {segment_count}セグメント処理済み", print_console=False)
+                log_and_print(f"進捗: {segment_count}セグメント処理済み", category="処理", print_console=False)
         
         # 処理時間を計算
         processing_time = time.time() - start_time
@@ -421,12 +430,12 @@ def scan_and_queue_files():
             }
             
             processing_queue.append(file_info)
-            log_and_print(f"キューに追加: {file_name}", print_console=False)
+            log_and_print(f"キュー追加: {file_name}", category="キュー", print_console=False)
         
-        log_and_print(f"現在のキュー: {len(processing_queue)}件", print_console=False)
+        log_and_print(f"キュー状態: {len(processing_queue)}件待機中", category="キュー", print_console=False)
         
     except Exception as e:
-        log_and_print(f"キュースキャン中にエラーが発生しました: {e}", "error")
+        log_and_print(f"キュースキャン中エラー: {e}", "error", category="キュー")
 
 def is_file_queued_or_processing(file_path):
     """ファイルが既にキューにあるか処理中か確認"""
@@ -516,19 +525,19 @@ def process_file(file_path):
     try:
         # ファイルが存在するか確認
         if not os.path.exists(file_path):
-            log_and_print(f"ファイルが存在しません: {file_path}", "warning")
+            log_and_print(f"ファイルが存在しません: {file_path}", "warning", category="ファイル")
             return None
         
         # 処理中リストに追加
         files_in_process.add(file_path)
         file_name = os.path.basename(file_path)
-        log_and_print(f"ファイル処理開始: {file_name}", print_console=False)
+        log_and_print(f"処理開始: {file_name}", category="ファイル", print_console=False)
         
         # 文字起こし処理を実行
         transcription = transcribe_audio(file_path)
         
         if stop_requested:
-            log_and_print(f"処理中断: {file_name}", "warning")
+            log_and_print(f"処理中断: {file_name}", "warning", category="ファイル")
             return None
         
         if transcription:
@@ -545,7 +554,7 @@ def process_file(file_path):
             
             # 処理時間を計算
             processing_time = time.time() - start_time
-            log_and_print(f"文字起こし完了: {file_name} -> {output_file} (処理時間: {processing_time:.2f}秒)")
+            log_and_print(f"処理完了: {file_name} → {output_file} (処理時間: {processing_time:.2f}秒)", category="ファイル")
             
             # アーカイブフォルダに移動
             archive_folder = config.get("archive_folder", "archive")
@@ -553,15 +562,15 @@ def process_file(file_path):
             
             archive_path = os.path.join(archive_folder, file_name)
             archive_path = safe_move_file(file_path, archive_path)
-            log_and_print(f"アーカイブ: {file_name} -> {archive_path}", print_console=False)
+            log_and_print(f"アーカイブ: {file_name}", category="ファイル", print_console=False)
             
             return str(output_file)
         else:
-            log_and_print(f"文字起こし失敗: {file_name}", "error")
+            log_and_print(f"処理失敗: {file_name}", "error", category="ファイル")
             return None
     
     except Exception as e:
-        log_and_print(f"ファイル処理中にエラーが発生しました: {file_path} - {e}", "error")
+        log_and_print(f"エラー発生: {file_path} - {e}", "error", category="ファイル")
         return None
     finally:
         # 処理中リストから削除
@@ -575,7 +584,7 @@ def processing_loop():
     global is_running, stop_requested
     
     try:
-        log_and_print("文字起こし処理を開始しました", print_console=False)
+        log_and_print("文字起こし処理を開始しました", category="システム")
         
         scan_interval = config.get("scan_interval_minutes", 30) * 60  # 秒に変換
         last_scan_time = 0
@@ -623,10 +632,10 @@ def processing_loop():
             time.sleep(1)
         
     except Exception as e:
-        log_and_print(f"処理ループでエラーが発生しました: {e}", "error")
+        log_and_print(f"処理ループでエラーが発生しました: {e}", "error", category="システム")
     finally:
         is_running = False
-        log_and_print("文字起こし処理を終了しました", print_console=False)
+        log_and_print("文字起こし処理を終了しました", category="システム")
 
 def start_processing():
     """文字起こし処理を開始"""
@@ -665,7 +674,7 @@ def stop_processing():
         log_and_print(f"停止フラグファイルの作成に失敗しました: {e}", "error")
     
     # ログに停止を記録
-    log_and_print("文字起こし処理を停止しました", "info", print_console=False)
+    log_and_print("処理停止を要求しました", category="システム", print_console=False)
     
     # CLI側で待機を行うため、ここでは待機しない
     # (終了コマンドの場合はデーモンスレッドとして自動終了する)
