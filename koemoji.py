@@ -79,8 +79,7 @@ def cleanup_on_exit():
     if os.path.exists(STOP_FLAG_FILE):
         try:
             os.remove(STOP_FLAG_FILE)
-            if logger:
-                logger.info("停止フラグファイルを削除しました")
+            # 不要なログ出力を削除
         except:
             pass
     
@@ -97,7 +96,11 @@ def reset_state():
     if os.path.exists(STOP_FLAG_FILE):
         try:
             os.remove(STOP_FLAG_FILE)
-            print("古い停止フラグファイルを削除しました")
+            # ログ出力を内部処理のみに変更
+            if logger:
+                logger.debug("古い停止フラグファイルを削除しました")
+            else:
+                print("古い停止フラグファイルを削除しました")
         except:
             print("停止フラグの削除に失敗しました")
     
@@ -596,26 +599,64 @@ def processing_loop():
         while is_running and not stop_requested:
             # 停止フラグファイルのチェック（外部からの停止命令に対応）
             if os.path.exists(STOP_FLAG_FILE):
-                log_and_print("停止フラグファイルを検出しました。処理を終了します。", "info")
+                log_and_print("停止フラグファイルを検出しました。プログラムを再起動します。", category="システム", print_console=False)
                 try:
                     os.remove(STOP_FLAG_FILE)
                 except:
                     pass
                 stop_requested = True
                 is_running = False
+                
+                # 再起動用バッチファイルを作成
+                try:
+                    with open("restart_koemoji.bat", "w") as f:
+                        f.write('@echo off\n')
+                        f.write('timeout /t 1 /nobreak >nul\n')  # 短い待機
+                        f.write('start "" koemoji_cli.bat\n')    # 新しいウィンドウで起動
+                        f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')  # 元のウィンドウを閉じる
+                        f.write('exit\n')                        # バッチ終了
+                    
+                    # バッチファイルを実行
+                    import subprocess
+                    subprocess.Popen("restart_koemoji.bat", shell=True)
+                    
+                    # 正常終了
+                    sys.exit(0)
+                except Exception as e:
+                    log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
+                
                 break  # ループを確実に抜ける
             
             # ファイル処理
             while process_next_file():
                 # 処理内でも停止フラグファイルをチェック
                 if os.path.exists(STOP_FLAG_FILE):
-                    log_and_print("停止フラグファイルを検出しました。処理を終了します。", "info")
+                    log_and_print("停止フラグファイルを検出しました。プログラムを再起動します。", "info")
                     try:
                         os.remove(STOP_FLAG_FILE)
                     except:
                         pass
                     stop_requested = True
                     is_running = False
+                    
+                    # 再起動用バッチファイルを作成
+                    try:
+                        with open("restart_koemoji.bat", "w") as f:
+                            f.write('@echo off\n')
+                            f.write('timeout /t 1 /nobreak >nul\n')  # 短い待機
+                            f.write('start "" koemoji_cli.bat\n')    # 新しいウィンドウで起動
+                            f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')  # 元のウィンドウを閉じる
+                            f.write('exit\n')                        # バッチ終了
+                        
+                        # バッチファイルを実行
+                        import subprocess
+                        subprocess.Popen("restart_koemoji.bat", shell=True)
+                        
+                        # 正常終了
+                        sys.exit(0)
+                    except Exception as e:
+                        log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
+                    
                     break
                 
                 if stop_requested:
@@ -656,36 +697,45 @@ def start_processing():
     return True
 
 def stop_processing():
-    """文字起こし処理を停止"""
+    """文字起こし処理を停止（再起動による完全停止）"""
     global is_running, stop_requested
     
     if not is_running:
         return False  # 既に停止中
     
-    # 停止要求フラグを設定
+    # 停止フラグを設定
     stop_requested = True
     is_running = False
     
-    # 処理中のファイルがあるか確認
-    if files_in_process:
-        log_and_print("注意: 処理中のファイルは中断できません。完全に停止するには画面を閉じてください。", "warning")
-    else:
-        log_and_print("処理を停止しました", category="システム")
+    log_and_print("停止要求により完全停止します。プログラムを再起動します。", category="システム")
     
-    # 停止フラグファイルを作成して外部プロセスにも通知
+    # 停止フラグファイルを削除（再起動時に混乱を避けるため）
+    if os.path.exists(STOP_FLAG_FILE):
+        try:
+            os.remove(STOP_FLAG_FILE)
+            # ログ出力なし
+        except:
+            pass
+    
+    # バッチファイルを使用して再起動する方法 - これがWindowsで最も信頼性が高い
     try:
-        with open(STOP_FLAG_FILE, 'w') as f:
-            f.write(str(time.time()))  # タイムスタンプ付きで作成
+        # 再起動用バッチファイルを作成
+        with open("restart_koemoji.bat", "w") as f:
+            f.write('@echo off\n')
+            f.write('timeout /t 1 /nobreak >nul\n')  # 短い待機
+            f.write('start "" koemoji_cli.bat\n')    # 新しいウィンドウで起動
+            f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')  # 元のウィンドウを閉じる
+            f.write('exit\n')                        # バッチ終了
+        
+        # バッチファイルを実行
+        import subprocess
+        subprocess.Popen("restart_koemoji.bat", shell=True)
+        
+        # 正常終了
+        sys.exit(0)
     except Exception as e:
-        log_and_print(f"停止フラグファイルの作成に失敗しました: {e}", "error")
-    
-    # ログに停止を記録
-    log_and_print("処理停止を要求しました", category="システム", print_console=False)
-    
-    # CLI側で待機を行うため、ここでは待機しない
-    # (終了コマンドの場合はデーモンスレッドとして自動終了する)
-    
-    return True#=======================================================================
+        log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
+        return False#=======================================================================
 # CLI インターフェース
 #=======================================================================
 
@@ -755,25 +805,21 @@ def show_recent_logs(lines=10):
 
 def get_status_display():
     """ステータス表示文字列を取得"""
-    if stop_requested and files_in_process:
-        return "⏸ 停止処理中 (処理中ファイルを完了中)"
-    elif is_running:
-        return "● 実行中"
-    else:
-        return "○ 停止中"
+    status = "実行中" if is_running else "停止中"
+    status_symbol = "●" if is_running else "○"
+    return f"{status_symbol} {status}"
 
 def display_menu():
     """メニューを表示"""
     print("=" * 40)
-    print(" KoeMojiAuto ")
+    print("              KoeMojiAuto")
     print("=" * 40)
     print(f"状態: {get_status_display()}")
     print("-" * 40)
     print("  1. 開始      - 文字起こしを開始")
-    print("  2. 停止      - 文字起こしを停止")
+    print("  2. 停止      - 処理を中断して再起動")
     print("  3. 設定表示  - 現在の設定を確認")
     print("  4. リセット  - 状態を初期化")
-    print("  0. 終了      - プログラムを終了")
     print("-" * 40)
 
 def display_cli():
@@ -816,35 +862,13 @@ def display_cli():
                 if not is_running:
                     print("すでに停止しています")
                 else:
-                    print("停止中です")
+                    print("停止中です（プログラムを再起動して処理を中断します）...")
                     
-                    # 停止処理を実行
+                    # 停止処理を実行（再起動）
                     stop_result = stop_processing()
                     
-                    # 処理中のファイルがあるか確認
-                    if files_in_process:
-                        print("\n注意: 現在処理中のファイルは中断できません")
-                        print("完全に停止するには次の選択肢があります:")
-                        print("1. プログラムを終了する (0を選択)")
-                        print("2. 画面を閉じる (×ボタン)")
-                        print("\n処理中のファイル:")
-                        for file_path in files_in_process:
-                            print(f" - {os.path.basename(file_path)}")
-                    else:
-                        # 停止処理中の待機（スレッド終了を待機）
-                        if processing_thread and processing_thread.is_alive():
-                            for i in range(5):  # 5秒間待機
-                                time.sleep(1)
-                                print(f"停止中です{'.' * (i+1)}")
-                                
-                                # スレッドが終了したら待機ループを抜ける
-                                if not processing_thread.is_alive():
-                                    break
-                        
-                        if stop_result:
-                            print("文字起こし処理を停止しました")
-                        else:
-                            print("処理の停止に失敗しました")
+                    # 正常に再起動した場合、ここには到達しない
+                    print("プログラムの再起動に失敗しました。もう一度お試しください。")
                 input("\nEnterキーで戻る...")
             elif choice == "3":
                 print("\n--- 設定内容 ---")
@@ -855,28 +879,6 @@ def display_cli():
                 print("\n状態をリセットします...")
                 reset_state()
                 input("\nEnterキーで戻る...")
-            elif choice == "0":
-                # 処理中ファイルがある場合は確認
-                if files_in_process:
-                    print("\n注意: 処理中のファイルがあります")
-                    print("プログラムを終了すると、処理は中断されます")
-                    confirm = input("終了しますか？ (y/n): ")
-                    if confirm.lower() != 'y':
-                        continue  # キャンセルしてメニューに戻る
-                
-                # 実行中なら停止処理
-                if is_running:
-                    print("停止中です...")
-                    stop_processing()
-                    
-                    # 停止処理中の待機表示
-                    if processing_thread and processing_thread.is_alive():
-                        for i in range(3):  # 終了前なので短めに
-                            time.sleep(1)
-                            print(f"停止中です{'.' * (i+1)}")
-                
-                print("\nプログラムを終了します...")
-                sys.exit(0)  # プロセスを確実に終了
             else:
                 print("ログを更新しました（無効な選択がログ更新として機能します）")
                 input("\nEnterキーで戻る...")
@@ -901,7 +903,7 @@ if __name__ == "__main__":
             try:
                 with open(STOP_FLAG_FILE, 'w') as f:
                     f.write(str(time.time()))  # タイムスタンプ付きで作成
-                print("停止シグナルを送信しました。プロセスは直ちに停止します。")
+                print("停止シグナルを送信しました。プログラムは再起動します。")
                 sys.exit(0)
             except Exception as e:
                 print(f"停止シグナルの送信中にエラーが発生しました: {e}")
