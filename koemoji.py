@@ -814,7 +814,11 @@ def display_cli():
                 reset_state()
                 input("\nEnterキーで戻る...")
             elif choice == "0":
-                break
+                # 実行中なら停止処理
+                if is_running:
+                    stop_processing()
+                print("\nプログラムを終了します...")
+                sys.exit(0)  # プロセスを確実に終了
             else:
                 print("ログを更新しました（無効な選択がログ更新として機能します）")
                 input("\nEnterキーで戻る...")
