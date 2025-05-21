@@ -537,8 +537,18 @@ def run_main_process():
 #=======================================================================
 
 def clear_screen():
-    """画面をクリア"""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    """画面をクリアしてタイトルを設定"""
+    # 実行状態を文字列で取得
+    status = "実行中" if check_if_running() else "停止中"
+    
+    if IS_WINDOWS:
+        os.system('cls')
+        # Windowsでタイトルを設定（状態を含める）
+        os.system(f'title KoeMojiAuto CLI - 文字起こしマネージャー [{status}]')
+    else:
+        os.system('clear')
+        # Linux/Macではエスケープシーケンスでタイトル設定（対応端末のみ）
+        print(f"\033]0;KoeMojiAuto CLI [{status}]\007", end="")
 
 def show_recent_logs(lines=7):
     """最新のログを表示"""
