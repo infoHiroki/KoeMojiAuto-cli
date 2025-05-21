@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-KoeMojiAuto - 自動文字起こしシステム (統合版)
-音声・動画ファイルから自動で文字起こしを行うツール
+KoeMojiAuto - 自動文字起こしシステム (統合版 - シンプルモデル)
+音声・動画ファイルから自動で文字起こし - CLIを閉じると処理も停止
 """
 
 import os
@@ -13,12 +13,31 @@ import json
 import logging
 import shutil
 import argparse
-import subprocess
+import threading
 import platform
+import atexit
+import signal
+import psutil
 from pathlib import Path
 
 # Windowsかどうかを判定
 IS_WINDOWS = platform.system() == 'Windows'
+
+# グローバル変数
+config = {}
+logger = None
+processing_queue = []
+files_in_process = set()
+whisper_model = None
+model_config = None
+
+# 実行状態を管理するグローバル変数
+is_running = False
+stop_requested = False
+processing_thread = None
+
+# 停止フラグファイル（互換性のために残す、起動時に削除）
+STOP_FLAG_FILE = "stop_koemoji.flag"
 
 # デフォルト設定
 DEFAULT_CONFIG = {
@@ -33,16 +52,82 @@ DEFAULT_CONFIG = {
     "max_cpu_percent": 95
 }
 
-# グローバル変数
-config = None
-logger = None
-processing_queue = []
-files_in_process = set()
-whisper_model = None
-model_config = None
+#=======================================================================
+# 初期化とクリーンアップ
+#=======================================================================
 
-# フラグ設定
-STOP_FLAG_FILE = "stop_koemoji.flag"
+def cleanup_on_exit():
+    """終了時のクリーンアップ処理"""
+    global stop_requested, is_running
+    
+    # 停止要求フラグを立てる
+    stop_requested = True
+    is_running = False
+    
+    # 停止フラグファイルが存在すれば削除
+    if os.path.exists(STOP_FLAG_FILE):
+        try:
+            os.remove(STOP_FLAG_FILE)
+            if logger:
+                logger.info("停止フラグファイルを削除しました")
+        except:
+            pass
+    
+    # 処理スレッドが動いていれば最大10秒待つ
+    if processing_thread and processing_thread.is_alive():
+        processing_thread.join(timeout=10)
+    
+    if logger:
+        logger.info("KoeMojiAutoを終了しました")
+
+def reset_state():
+    """状態をリセット - 古いプロセスやフラグを削除"""
+    # 停止フラグを削除
+    if os.path.exists(STOP_FLAG_FILE):
+        try:
+            os.remove(STOP_FLAG_FILE)
+            print("古い停止フラグファイルを削除しました")
+        except:
+            print("停止フラグの削除に失敗しました")
+    
+    # 関連するPythonプロセスを検索して終了
+    current_pid = os.getpid()
+    killed = False
+    
+    try:
+        for proc in psutil.process_iter(['pid', 'cmdline']):
+            try:
+                if proc.pid == current_pid:
+                    continue
+                    
+                cmdline = proc.info.get('cmdline')
+                if cmdline and len(cmdline) > 1:
+                    # koemoji.pyを実行している他のプロセスを探す
+                    if any('koemoji.py' in arg for arg in cmdline):
+                        proc.terminate()
+                        killed = True
+                        print(f"関連するプロセス(PID: {proc.pid})を終了しました")
+            except:
+                pass
+    except:
+        print("プロセスのクリーンアップに失敗しました")
+    
+    if killed:
+        print("システムをリセットしました。起動を続行します。")
+    
+    return killed
+
+# 終了時の処理を登録
+atexit.register(cleanup_on_exit)
+
+# シグナルハンドラ設定
+def signal_handler(sig, frame):
+    """シグナル受信時の処理"""
+    cleanup_on_exit()
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 #=======================================================================
 # ロギング・ユーティリティ関数
@@ -110,40 +195,7 @@ def safe_move_file(source, destination):
     
     # 移動実行
     shutil.move(source, str(dest_path))
-    return dest_path
-
-def check_if_running():
-    """停止フラグファイルが存在しないか確認"""
-    return not os.path.exists(STOP_FLAG_FILE)
-
-def is_already_running():
-    """既に実行中かチェック"""
-    try:
-        import psutil
-    except ImportError:
-        log_and_print("psutilがインストールされていません", "warning")
-        return False
-        
-    current_pid = os.getpid()
-    
-    for proc in psutil.process_iter(['pid', 'cmdline']):
-        try:
-            if proc.pid == current_pid:
-                continue
-                
-            cmdline = proc.info.get('cmdline')
-            if cmdline and len(cmdline) > 1:
-                # PythonまたはPython3プロセスであることを確認
-                if 'python' in cmdline[0].lower() or 'python3' in cmdline[0].lower():
-                    # koemoji.pyを実行しているかチェック
-                    for arg in cmdline[1:]:
-                        if arg.endswith('koemoji.py') and '--cli' not in cmdline:
-                            logger.debug(f"既存のプロセスを検出: PID={proc.pid}")
-                            return True
-        except:
-            pass
-    
-    return False#=======================================================================
+    return dest_path#=======================================================================
 # 設定管理
 #=======================================================================
 
@@ -217,9 +269,7 @@ def save_config(config_path="config.json"):
     except Exception as e:
         log_and_print(f"設定の保存中にエラーが発生しました: {e}", "error")
         if 'temp_path' in locals() and os.path.exists(temp_path):
-            os.remove(temp_path)
-
-#=======================================================================
+            os.remove(temp_path)#=======================================================================
 # 文字起こし処理
 #=======================================================================
 
@@ -285,7 +335,10 @@ def transcribe_audio(file_path):
 
 def scan_and_queue_files():
     """入力フォルダをスキャンしてファイルをキューに追加"""
-    global processing_queue
+    global processing_queue, stop_requested
+    
+    if stop_requested:
+        return
     
     try:
         logger.debug("入力フォルダのスキャンを開始します")
@@ -352,10 +405,13 @@ def is_file_queued_or_processing(file_path):
         if item["path"] == file_path:
             return True
     
-    return False
-
-def wait_for_resources(max_wait_seconds=30):
+    return Falsedef wait_for_resources(max_wait_seconds=5):
     """リソースが利用可能になるまで待機（タイムアウト付き）"""
+    global stop_requested
+    
+    if stop_requested:
+        return False
+        
     try:
         import psutil
     except ImportError:
@@ -365,68 +421,68 @@ def wait_for_resources(max_wait_seconds=30):
     start_time = time.time()
     
     while time.time() - start_time < max_wait_seconds:
+        if stop_requested:
+            return False
+            
         cpu_percent = psutil.cpu_percent(interval=1)  # 1秒間隔で測定
         
         if cpu_percent <= max_cpu:
             return True  # リソース利用可能
             
-        wait_time = min(5, max_wait_seconds - (time.time() - start_time))
+        wait_time = min(2, max_wait_seconds - (time.time() - start_time))
         if wait_time <= 0:
             break
             
         log_and_print(f"CPU使用率が高いため待機中: {cpu_percent}% > {max_cpu}% (あと{wait_time:.0f}秒)")
-        time.sleep(min(2, wait_time))  # 最大2秒待機
+        time.sleep(min(1, wait_time))  # 最大1秒待機
     
     return False  # タイムアウト
 
-def process_queued_files():
-    """キューにあるファイルを処理"""
-    global processing_queue, files_in_process
+def process_next_file():
+    """キューの次のファイルを処理"""
+    global processing_queue, files_in_process, stop_requested
+    
+    if stop_requested or not is_running:
+        return False
     
     try:
         if not processing_queue:
-            logger.debug("処理すべきファイルはありません")
-            return
+            return False  # 処理すべきファイルなし
         
         # リソース使用状況を確認
         if not wait_for_resources():
-            log_and_print("リソース待機がタイムアウトしました。次回に処理を延期します。", "warning")
-            return
+            return False  # リソース不足またはタイムアウト
         
         # 同時処理数を確認
         max_concurrent = config.get("max_concurrent_files", 3)
-        current_running = len(files_in_process)
-        available_slots = max(0, max_concurrent - current_running)
+        if len(files_in_process) >= max_concurrent:
+            return False  # 同時処理数の上限
         
-        if available_slots <= 0:
-            logger.debug("同時処理数の上限に達しています")
-            return
+        # 次のファイルを取得
+        file_info = processing_queue.pop(0)
+        file_path = file_info["path"]
         
-        # 処理するファイル数を決定
-        files_to_process = processing_queue[:available_slots]
-        
-        # ファイルを処理
-        for file_info in files_to_process:
-            file_path = file_info["path"]
-            # キューから削除
-            processing_queue = [f for f in processing_queue if f["path"] != file_path]
-            
-            # 処理開始
-            process_file(file_path)
+        # 処理開始
+        result = process_file(file_path)
+        return result is not None
     
     except Exception as e:
-        log_and_print(f"キュー処理中にエラーが発生しました: {e}", "error")
+        log_and_print(f"ファイル処理中にエラーが発生しました: {e}", "error")
+        return False
 
 def process_file(file_path):
     """ファイルを処理する"""
-    global files_in_process
+    global files_in_process, stop_requested
+    
+    if stop_requested:
+        return None
     
     start_time = time.time()
     try:
         # ファイルが存在するか確認
         if not os.path.exists(file_path):
             log_and_print(f"ファイルが存在しません: {file_path}", "warning")
-            return
+            return None
         
         # 処理中リストに追加
         files_in_process.add(file_path)
@@ -435,6 +491,10 @@ def process_file(file_path):
         
         # 文字起こし処理を実行
         transcription = transcribe_audio(file_path)
+        
+        if stop_requested:
+            log_and_print(f"処理中断: {file_name}", "warning")
+            return None
         
         if transcription:
             # 出力ファイルパスを生成
@@ -471,91 +531,103 @@ def process_file(file_path):
     finally:
         # 処理中リストから削除
         if file_path in files_in_process:
-            files_in_process.remove(file_path)
-
-#=======================================================================
-# メイン処理ループ
+            files_in_process.remove(file_path)#=======================================================================
+# メイン処理ループとスレッド管理
 #=======================================================================
 
-def run_main_process():
-    """メイン処理ループを実行"""
+def processing_loop():
+    """文字起こし処理のメインループ（スレッドで実行）"""
+    global is_running, stop_requested
+    
     try:
-        # 停止フラグがあれば削除
-        if os.path.exists(STOP_FLAG_FILE):
-            os.remove(STOP_FLAG_FILE)
-            log_and_print("古い停止フラグを削除しました")
-        
-        # 既に実行中かチェック
-        if is_already_running():
-            log_and_print("既に別のKoemojiAutoプロセスが実行中です。", "error")
-            return
-        
-        log_and_print("KoemojiAuto処理を開始しました")
-        log_and_print("24時間連続モードで動作します")
+        log_and_print("文字起こし処理を開始しました")
         
         scan_interval = config.get("scan_interval_minutes", 30) * 60  # 秒に変換
         last_scan_time = 0
         
         # 初回スキャン
         scan_and_queue_files()
-        process_queued_files()
         
-        # メインループ（24時間動作）
-        while True:
-            # 停止フラグを確認
-            if os.path.exists(STOP_FLAG_FILE):
-                log_and_print("停止フラグが検出されました。処理を終了します")
-                break
+        # メインループ
+        while is_running and not stop_requested:
+            # ファイル処理
+            while process_next_file():
+                if stop_requested:
+                    break
+                time.sleep(0.1)  # 短い待機
             
+            # 定期的にフォルダをスキャン
             current_time = time.time()
-            
-            # 定期的にファイルをスキャン
             if current_time - last_scan_time >= scan_interval:
                 scan_and_queue_files()
                 last_scan_time = current_time
             
-            # キューのファイルを処理
-            process_queued_files()
-            
-            # 短い待機（フラグファイルチェックの頻度も兼ねる）
-            time.sleep(5)
+            # 短い待機（停止チェックの頻度も兼ねる）
+            time.sleep(1)
         
-    except KeyboardInterrupt:
-        log_and_print("停止シグナルを受信しました")
     except Exception as e:
-        log_and_print(f"処理中にエラーが発生しました: {e}", "error")
+        log_and_print(f"処理ループでエラーが発生しました: {e}", "error")
     finally:
-        # 終了時にフラグファイルを削除
-        if os.path.exists(STOP_FLAG_FILE):
-            os.remove(STOP_FLAG_FILE)
-            log_and_print("停止フラグを削除しました")
-        
-        log_and_print("KoemojiAutoを終了しました")
+        is_running = False
+        log_and_print("文字起こし処理を終了しました")
 
-#=======================================================================
+def start_processing():
+    """文字起こし処理を開始"""
+    global is_running, stop_requested, processing_thread
+    
+    if is_running:
+        return False  # 既に実行中
+    
+    # フラグを設定
+    is_running = True
+    stop_requested = False
+    
+    # 処理スレッドを開始
+    processing_thread = threading.Thread(target=processing_loop)
+    processing_thread.daemon = True  # メインスレッド終了時に自動終了
+    processing_thread.start()
+    
+    return True
+
+def stop_processing():
+    """文字起こし処理を停止"""
+    global is_running, stop_requested
+    
+    if not is_running:
+        return False  # 既に停止中
+    
+    # 停止要求フラグを設定
+    stop_requested = True
+    is_running = False
+    
+    # 処理スレッドが終了するのを少し待つ
+    if processing_thread and processing_thread.is_alive():
+        processing_thread.join(timeout=5)
+    
+    return True#=======================================================================
 # CLI インターフェース
 #=======================================================================
 
 def clear_screen():
     """画面をクリアしてタイトルを設定"""
     # 実行状態を文字列で取得
-    status = "実行中" if check_if_running() else "停止中"
+    status = "実行中" if is_running else "停止中"
     
     if IS_WINDOWS:
         os.system('cls')
-        # Windowsでタイトルを設定（シンプルなタイトル）
+        # Windowsでタイトルを設定（状態を含める）
         os.system(f'title KoeMoji-{status}')
     else:
         os.system('clear')
         # Linux/Macではエスケープシーケンスでタイトル設定
         print(f"\033]0;KoeMoji-{status}\007", end="")
 
-def show_recent_logs(lines=7):
+def show_recent_logs(lines=10):
     """最新のログを表示"""
     log_path = 'koemoji.log'
     if os.path.exists(log_path):
         try:
-            with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
+            with open(log_path, 'r', encoding='utf-8') as f:
                 all_lines = f.readlines()
                 recent_lines = all_lines[-lines:] if len(all_lines) >= lines else all_lines
                 for line in recent_lines:
@@ -567,9 +639,8 @@ def show_recent_logs(lines=7):
 
 def get_status_display():
     """ステータス表示文字列を取得"""
-    running = check_if_running()
-    status = "実行中" if running else "停止中"
-    status_symbol = "●" if running else "○"
+    status = "実行中" if is_running else "停止中"
+    status_symbol = "●" if is_running else "○"
     return f"{status_symbol} {status}"
 
 def display_menu():
@@ -582,15 +653,13 @@ def display_menu():
     print("  1. 開始      - 文字起こしを開始")
     print("  2. 停止      - 文字起こしを停止")
     print("  3. 設定表示  - 現在の設定を確認")
+    print("  4. リセット  - 状態を初期化")
     print("  0. 終了      - プログラムを終了")
     print("-" * 40)
 
 def display_cli():
     """CLIインターフェースを表示"""
     try:
-        # 設定を読み込む
-        load_config()
-        
         while True:
             clear_screen()
             display_menu()
@@ -598,35 +667,38 @@ def display_cli():
             # ログ表示領域
             print("\n最新ログ:")
             print("-" * 40)
-            show_recent_logs(10)  # 最新の10行を表示
+            show_recent_logs(10)
             print("-" * 40)
             
             # コマンド受付と処理
             choice = input("\n選択> ")
             
             if choice == "1":
-                # Windowsの場合は独自の起動方法
-                if IS_WINDOWS:
-                    # 非表示でプロセスを起動
-                    subprocess.Popen([sys.executable, sys.argv[0]], 
-                                    creationflags=subprocess.CREATE_NO_WINDOW)
+                if is_running:
+                    print("すでに実行中です")
                 else:
-                    # Unix系はバックグラウンドで起動
-                    subprocess.Popen([sys.executable, sys.argv[0], "&"], 
-                                    shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                
-                print("KoemojiAutoを開始しました")
+                    if start_processing():
+                        print("文字起こし処理を開始しました")
+                    else:
+                        print("処理の開始に失敗しました")
                 input("\nEnterキーで戻る...")
             elif choice == "2":
-                # 停止フラグを作成
-                with open(STOP_FLAG_FILE, 'w') as f:
-                    f.write("1")
-                print("停止フラグを作成しました。プログラムは次のサイクルで終了します。")
+                if not is_running:
+                    print("すでに停止しています")
+                else:
+                    if stop_processing():
+                        print("文字起こし処理を停止しました")
+                    else:
+                        print("処理の停止に失敗しました")
                 input("\nEnterキーで戻る...")
             elif choice == "3":
                 print("\n--- 設定内容 ---")
                 for key, value in config.items():
                     print(f"{key}: {value}")
+                input("\nEnterキーで戻る...")
+            elif choice == "4":
+                print("\n状態をリセットします...")
+                reset_state()
                 input("\nEnterキーで戻る...")
             elif choice == "0":
                 break
@@ -635,9 +707,7 @@ def display_cli():
                 input("\nEnterキーで戻る...")
     except Exception as e:
         print(f"CLIの実行中にエラーが発生しました: {e}")
-        input("\nEnterキーで終了...")  # エラー時にユーザーに確認を求める
-
-#=======================================================================
+        input("\nEnterキーで終了...")  # エラー時にユーザーに確認を求める#=======================================================================
 # メイン実行部分
 #=======================================================================
 
@@ -646,26 +716,21 @@ if __name__ == "__main__":
         # コマンドライン引数の解析
         parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
         parser.add_argument("--cli", action="store_true", help="CLIモードで起動")
-        parser.add_argument("--stop", action="store_true", help="文字起こしを停止")
+        parser.add_argument("--reset", action="store_true", help="状態をリセット")
         args = parser.parse_args()
+        
+        # 起動時にシステム状態をリセット（古いプロセスとフラグを削除）
+        reset_state()
         
         # ロギング設定
         setup_logging()
         
-        # 引数に基づいて処理を選択
-        if args.cli:
-            # CLIモードで起動
-            display_cli()
-        elif args.stop:
-            # 停止フラグを作成
-            with open(STOP_FLAG_FILE, 'w') as f:
-                f.write("1")
-            print("停止フラグを作成しました。プログラムは次のサイクルで終了します。")
-        else:
-            # 文字起こし処理を実行
-            load_config()
-            run_main_process()
+        # 設定を読み込む
+        load_config()
+        
+        # CLI表示
+        display_cli()
+        
     except Exception as e:
         print(f"予期せぬエラーが発生しました: {e}")
-        if "args" in locals() and hasattr(args, "cli") and args.cli:
-            input("\nEnterキーで終了...")  # CLIモードの場合は入力待ち
+        input("\nEnterキーで終了...")
