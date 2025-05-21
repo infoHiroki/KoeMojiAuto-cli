@@ -629,25 +629,49 @@ def show_recent_logs(lines=10):
     """最新のログを表示"""
     log_path = 'koemoji.log'
     if os.path.exists(log_path):
-        # 試すエンコーディングのリスト（日本語Windows環境を考慮）
-        encodings = ['utf-8', 'shift-jis', 'cp932', 'euc-jp']
-        
-        for encoding in encodings:
-            try:
-                with open(log_path, 'r', encoding=encoding) as f:
-                    all_lines = f.readlines()
-                    recent_lines = all_lines[-lines:] if len(all_lines) >= lines else all_lines
-                    for line in recent_lines:
-                        print(line.strip())
-                return  # 成功したらループを抜ける
-            except UnicodeDecodeError:
-                continue  # 次のエンコーディングを試す
-            except Exception as e:
-                print(f"ログ読み込みエラー: {e}")
-                return
-        
-        # すべてのエンコーディングで失敗した場合
-        print("ログファイルを読み込めませんでした。エンコーディングの問題かもしれません。")
+        try:
+            # バイナリモードで読み込み
+            with open(log_path, 'rb') as f:
+                # ファイルの最後から最大10KB読み込む（十分な行数を確保）
+                f.seek(0, 2)  # ファイル末尾に移動
+                file_size = f.tell()  # ファイルサイズを取得
+                
+                # 読み込むサイズを決定（最大10KB、ファイル全体が10KB未満ならファイル全体）
+                read_size = min(10240, file_size)
+                f.seek(max(0, file_size - read_size), 0)  # 末尾から適切な位置に移動
+                
+                # データを読み込み
+                data = f.read()
+            
+            # 様々なエンコーディングでデコードを試みる
+            encodings = ['utf-8', 'shift-jis', 'cp932', 'euc-jp', 'iso-2022-jp']
+            decoded_lines = None
+            
+            for encoding in encodings:
+                try:
+                    text = data.decode(encoding)
+                    decoded_lines = text.splitlines()
+                    break
+                except UnicodeDecodeError:
+                    continue
+                    
+            if decoded_lines:
+                # 最新の指定行数を表示
+                recent_lines = decoded_lines[-lines:] if len(decoded_lines) >= lines else decoded_lines
+                for line in recent_lines:
+                    print(line.strip())
+            else:
+                # どのエンコーディングでもデコードできない場合は、省略して表示
+                print("ログファイルを読み込めませんでした。ログファイルをリセットすることをお勧めします。")
+                # 実用的な対応: 最新の数行だけでも何かを表示する
+                print("最新のログ内容の一部（生データ）:")
+                for i in range(min(5, lines)):
+                    if i < len(data) // 40:  # 40バイトごとに1行として扱う
+                        start = max(0, len(data) - (i+1)*40)
+                        end = max(0, len(data) - i*40)
+                        print(f"[バイナリデータ {start}:{end}]")
+        except Exception as e:
+            print(f"ログ読み込みエラー: {e}")
     else:
         print("ログファイルがありません")
 
