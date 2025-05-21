@@ -64,6 +64,17 @@ def cleanup_on_exit():
     stop_requested = True
     is_running = False
     
+    # 停止フラグファイルを作成（もし外部から呼ばれた場合のために）
+    try:
+        if not os.path.exists(STOP_FLAG_FILE):
+            with open(STOP_FLAG_FILE, 'w') as f:
+                f.write(str(time.time()))
+    except:
+        pass
+        
+    # 少し待機してから停止フラグファイルを削除（他のプロセスが読み取る時間を確保）
+    time.sleep(0.5)
+    
     # 停止フラグファイルが存在すれば削除
     if os.path.exists(STOP_FLAG_FILE):
         try:
@@ -554,8 +565,30 @@ def processing_loop():
         
         # メインループ
         while is_running and not stop_requested:
+            # 停止フラグファイルのチェック（外部からの停止命令に対応）
+            if os.path.exists(STOP_FLAG_FILE):
+                log_and_print("停止フラグファイルを検出しました。処理を終了します。", "info")
+                try:
+                    os.remove(STOP_FLAG_FILE)
+                except:
+                    pass
+                stop_requested = True
+                is_running = False
+                break  # ループを確実に抜ける
+            
             # ファイル処理
             while process_next_file():
+                # 処理内でも停止フラグファイルをチェック
+                if os.path.exists(STOP_FLAG_FILE):
+                    log_and_print("停止フラグファイルを検出しました。処理を終了します。", "info")
+                    try:
+                        os.remove(STOP_FLAG_FILE)
+                    except:
+                        pass
+                    stop_requested = True
+                    is_running = False
+                    break
+                
                 if stop_requested:
                     break
                 time.sleep(0.1)  # 短い待機
@@ -603,6 +636,13 @@ def stop_processing():
     # 停止要求フラグを設定
     stop_requested = True
     is_running = False
+    
+    # 停止フラグファイルを作成して外部プロセスにも通知
+    try:
+        with open(STOP_FLAG_FILE, 'w') as f:
+            f.write(str(time.time()))  # タイムスタンプ付きで作成
+    except Exception as e:
+        log_and_print(f"停止フラグファイルの作成に失敗しました: {e}", "error")
     
     # ログに停止を記録
     log_and_print("文字起こし処理を停止しました", "info", print_console=False)
@@ -701,8 +741,19 @@ def display_menu():
 
 def display_cli():
     """CLIインターフェースを表示"""
+    global is_running
+    
     try:
         while True:
+            # 停止フラグファイルをチェック（外部からの停止命令をCLIにも反映）
+            if os.path.exists(STOP_FLAG_FILE):
+                is_running = False
+                try:
+                    os.remove(STOP_FLAG_FILE)
+                except:
+                    pass
+                print("外部からの停止シグナルを検出しました。状態を停止に更新します。")
+                
             clear_screen()
             display_menu()
             
@@ -759,7 +810,20 @@ if __name__ == "__main__":
         parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
         parser.add_argument("--cli", action="store_true", help="CLIモードで起動")
         parser.add_argument("--reset", action="store_true", help="状態をリセット")
+        parser.add_argument("--stop", action="store_true", help="実行中のプロセスを停止")
         args = parser.parse_args()
+        
+        # --stopオプションの処理（最優先）
+        if hasattr(args, 'stop') and args.stop:
+            # 停止フラグファイルを作成
+            try:
+                with open(STOP_FLAG_FILE, 'w') as f:
+                    f.write(str(time.time()))  # タイムスタンプ付きで作成
+                print("停止シグナルを送信しました。プロセスは直ちに停止します。")
+                sys.exit(0)
+            except Exception as e:
+                print(f"停止シグナルの送信中にエラーが発生しました: {e}")
+                sys.exit(1)
         
         # 起動時にシステム状態をリセット（古いプロセスとフラグを削除）
         reset_state()
