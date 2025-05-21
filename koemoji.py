@@ -631,7 +631,7 @@ def processing_loop():
             while process_next_file():
                 # 処理内でも停止フラグファイルをチェック
                 if os.path.exists(STOP_FLAG_FILE):
-                    log_and_print("停止フラグファイルを検出しました。プログラムを再起動します。", "info")
+                    log_and_print("停止フラグファイルを検出しました。プログラムを再起動します。", category="システム", print_console=False)
                     try:
                         os.remove(STOP_FLAG_FILE)
                     except:
@@ -647,16 +647,17 @@ def processing_loop():
                             f.write('start "" koemoji_cli.bat\n')    # 新しいウィンドウで起動
                             f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')  # 元のウィンドウを閉じる
                             f.write('exit\n')                        # バッチ終了
-                        
+
                         # バッチファイルを実行
-                        import subprocess
+                        import subprocess # subprocess はここでインポートしても問題ないケースが多い
+                        # import os  # ← この行を削除またはコメントアウト
                         subprocess.Popen("restart_koemoji.bat", shell=True)
-                        
-                        # 正常終了
-                        sys.exit(0)
+
+                        # より強力な終了方法を使用（通常のクリーンアップルーチンをスキップ）
+                        os._exit(0)  # グローバルスコープの os が使われる
                     except Exception as e:
                         log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
-                    
+
                     break
                 
                 if stop_requested:
@@ -699,43 +700,39 @@ def start_processing():
 def stop_processing():
     """文字起こし処理を停止（再起動による完全停止）"""
     global is_running, stop_requested
-    
+
     if not is_running:
-        return False  # 既に停止中
-    
-    # 停止フラグを設定
+        return False
+
     stop_requested = True
     is_running = False
-    
+
     log_and_print("停止要求により完全停止します。プログラムを再起動します。", category="システム")
-    
-    # 停止フラグファイルを削除（再起動時に混乱を避けるため）
+
     if os.path.exists(STOP_FLAG_FILE):
         try:
             os.remove(STOP_FLAG_FILE)
-            # ログ出力なし
         except:
             pass
-    
-    # バッチファイルを使用して再起動する方法 - これがWindowsで最も信頼性が高い
+
     try:
-        # 再起動用バッチファイルを作成
         with open("restart_koemoji.bat", "w") as f:
             f.write('@echo off\n')
-            f.write('timeout /t 1 /nobreak >nul\n')  # 短い待機
-            f.write('start "" koemoji_cli.bat\n')    # 新しいウィンドウで起動
-            f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')  # 元のウィンドウを閉じる
-            f.write('exit\n')                        # バッチ終了
-        
-        # バッチファイルを実行
+            f.write('timeout /t 1 /nobreak >nul\n')
+            f.write('start "" koemoji_cli.bat\n')
+            f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')
+            f.write('exit\n')
+
         import subprocess
+        # import os  # ← この行を削除またはコメントアウト
         subprocess.Popen("restart_koemoji.bat", shell=True)
-        
-        # 正常終了
-        sys.exit(0)
+
+        os._exit(0) # グローバルスコープの os が使われる
     except Exception as e:
         log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
-        return False#=======================================================================
+        return False
+    
+#=======================================================================
 # CLI インターフェース
 #=======================================================================
 
@@ -904,10 +901,11 @@ if __name__ == "__main__":
                 with open(STOP_FLAG_FILE, 'w') as f:
                     f.write(str(time.time()))  # タイムスタンプ付きで作成
                 print("停止シグナルを送信しました。プログラムは再起動します。")
-                sys.exit(0)
+                import os
+                os._exit(0)
             except Exception as e:
                 print(f"停止シグナルの送信中にエラーが発生しました: {e}")
-                sys.exit(1)
+                os._exit(1)
         
         # 起動時にシステム状態をリセット（古いプロセスとフラグを削除）
         reset_state()
