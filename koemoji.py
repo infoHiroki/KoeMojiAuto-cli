@@ -603,6 +603,9 @@ def stop_processing():
     stop_requested = True
     is_running = False
     
+    # ログに停止を記録
+    log_and_print("文字起こし処理を停止しました", "info")
+    
     # 処理スレッドが終了するのを少し待つ
     if processing_thread and processing_thread.is_alive():
         processing_thread.join(timeout=5)
