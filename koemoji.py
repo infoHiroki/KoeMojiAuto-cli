@@ -631,7 +631,7 @@ def display_cli():
             elif choice == "0":
                 break
             else:
-                print("無効な選択です")
+                print("ログを更新しました（無効な選択がログ更新として機能します）")
                 input("\nEnterキーで戻る...")
     except Exception as e:
         print(f"CLIの実行中にエラーが発生しました: {e}")
