@@ -287,7 +287,12 @@ def save_config(config_path="config.json"):
 
 def transcribe_audio(file_path):
     """音声ファイルを文字起こし"""
-    global whisper_model, model_config
+    global whisper_model, model_config, stop_requested
+    
+    # 停止要求をチェック（この関数の先頭で確認）
+    if stop_requested:
+        log_and_print("停止要求を検出したため、文字起こしをキャンセルします", "info", print_console=False)
+        return None
     
     start_time = time.time()
     file_name = os.path.basename(file_path)
@@ -306,10 +311,25 @@ def transcribe_audio(file_path):
         # モデルが未ロードか設定が変わった場合のみ再ロード
         if (whisper_model is None or 
             model_config != (model_size, compute_type)):
+            # モデルロード前に再度停止要求をチェック
+            if stop_requested:
+                log_and_print("停止要求を検出したため、モデルロードをキャンセルします", "info", print_console=False)
+                return None
+                
             log_and_print(f"Whisperモデルをロード中: {model_size}", print_console=False)
             whisper_model = WhisperModel(model_size, compute_type=compute_type)
             model_config = (model_size, compute_type)
+            
+            # モデルロード後にも停止要求をチェック
+            if stop_requested:
+                log_and_print("停止要求を検出したため、文字起こしをキャンセルします", "info", print_console=False)
+                return None
         
+        # 文字起こし開始前に再度停止要求をチェック
+        if stop_requested:
+            log_and_print("停止要求を検出したため、文字起こしをキャンセルします", "info", print_console=False)
+            return None
+            
         log_and_print(f"文字起こし開始: {file_name}", print_console=False)
         
         # 文字起こし実行
