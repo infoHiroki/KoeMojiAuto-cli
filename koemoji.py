@@ -666,6 +666,12 @@ def stop_processing():
     stop_requested = True
     is_running = False
     
+    # 処理中のファイルがあるか確認
+    if files_in_process:
+        log_and_print("注意: 処理中のファイルは中断できません。完全に停止するには画面を閉じてください。", "warning")
+    else:
+        log_and_print("処理を停止しました", category="システム")
+    
     # 停止フラグファイルを作成して外部プロセスにも通知
     try:
         with open(STOP_FLAG_FILE, 'w') as f:
@@ -749,9 +755,12 @@ def show_recent_logs(lines=10):
 
 def get_status_display():
     """ステータス表示文字列を取得"""
-    status = "実行中" if is_running else "停止中"
-    status_symbol = "●" if is_running else "○"
-    return f"{status_symbol} {status}"
+    if stop_requested and files_in_process:
+        return "⏸ 停止処理中 (処理中ファイルを完了中)"
+    elif is_running:
+        return "● 実行中"
+    else:
+        return "○ 停止中"
 
 def display_menu():
     """メニューを表示"""
@@ -812,20 +821,30 @@ def display_cli():
                     # 停止処理を実行
                     stop_result = stop_processing()
                     
-                    # 停止処理中の待機（スレッド終了を待機）
-                    if processing_thread and processing_thread.is_alive():
-                        for i in range(5):  # 5秒間待機
-                            time.sleep(1)
-                            print(f"停止中です{'.' * (i+1)}")
-                            
-                            # スレッドが終了したら待機ループを抜ける
-                            if not processing_thread.is_alive():
-                                break
-                    
-                    if stop_result:
-                        print("文字起こし処理を停止しました")
+                    # 処理中のファイルがあるか確認
+                    if files_in_process:
+                        print("\n注意: 現在処理中のファイルは中断できません")
+                        print("完全に停止するには次の選択肢があります:")
+                        print("1. プログラムを終了する (0を選択)")
+                        print("2. 画面を閉じる (×ボタン)")
+                        print("\n処理中のファイル:")
+                        for file_path in files_in_process:
+                            print(f" - {os.path.basename(file_path)}")
                     else:
-                        print("処理の停止に失敗しました")
+                        # 停止処理中の待機（スレッド終了を待機）
+                        if processing_thread and processing_thread.is_alive():
+                            for i in range(5):  # 5秒間待機
+                                time.sleep(1)
+                                print(f"停止中です{'.' * (i+1)}")
+                                
+                                # スレッドが終了したら待機ループを抜ける
+                                if not processing_thread.is_alive():
+                                    break
+                        
+                        if stop_result:
+                            print("文字起こし処理を停止しました")
+                        else:
+                            print("処理の停止に失敗しました")
                 input("\nEnterキーで戻る...")
             elif choice == "3":
                 print("\n--- 設定内容 ---")
@@ -837,6 +856,14 @@ def display_cli():
                 reset_state()
                 input("\nEnterキーで戻る...")
             elif choice == "0":
+                # 処理中ファイルがある場合は確認
+                if files_in_process:
+                    print("\n注意: 処理中のファイルがあります")
+                    print("プログラムを終了すると、処理は中断されます")
+                    confirm = input("終了しますか？ (y/n): ")
+                    if confirm.lower() != 'y':
+                        continue  # キャンセルしてメニューに戻る
+                
                 # 実行中なら停止処理
                 if is_running:
                     print("停止中です...")
