@@ -405,7 +405,10 @@ def is_file_queued_or_processing(file_path):
         if item["path"] == file_path:
             return True
     
-    return Falsedef wait_for_resources(max_wait_seconds=5):
+    return False
+
+def wait_for_resources(max_wait_seconds=5):
+    
     """リソースが利用可能になるまで待機（タイムアウト付き）"""
     global stop_requested
     
@@ -626,14 +629,25 @@ def show_recent_logs(lines=10):
     """最新のログを表示"""
     log_path = 'koemoji.log'
     if os.path.exists(log_path):
-        try:
-            with open(log_path, 'r', encoding='utf-8') as f:
-                all_lines = f.readlines()
-                recent_lines = all_lines[-lines:] if len(all_lines) >= lines else all_lines
-                for line in recent_lines:
-                    print(line.strip())
-        except Exception as e:
-            print(f"ログ読み込みエラー: {e}")
+        # 試すエンコーディングのリスト（日本語Windows環境を考慮）
+        encodings = ['utf-8', 'shift-jis', 'cp932', 'euc-jp']
+        
+        for encoding in encodings:
+            try:
+                with open(log_path, 'r', encoding=encoding) as f:
+                    all_lines = f.readlines()
+                    recent_lines = all_lines[-lines:] if len(all_lines) >= lines else all_lines
+                    for line in recent_lines:
+                        print(line.strip())
+                return  # 成功したらループを抜ける
+            except UnicodeDecodeError:
+                continue  # 次のエンコーディングを試す
+            except Exception as e:
+                print(f"ログ読み込みエラー: {e}")
+                return
+        
+        # すべてのエンコーディングで失敗した場合
+        print("ログファイルを読み込めませんでした。エンコーディングの問題かもしれません。")
     else:
         print("ログファイルがありません")
 
