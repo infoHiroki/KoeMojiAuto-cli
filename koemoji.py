@@ -799,7 +799,7 @@ def display_cli():
                     print("すでに実行中です")
                 else:
                     if start_processing():
-                        print("文字起こし処理を開始しました")
+                        print("処理を開始しました")
                     else:
                         print("処理の開始に失敗しました")
                 input("\nEnterキーで戻る...")
