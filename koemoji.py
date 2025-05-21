@@ -572,6 +572,7 @@ def display_menu():
     print("  1. 開始      - 文字起こしを開始")
     print("  2. 停止      - 文字起こしを停止")
     print("  3. 設定表示  - 現在の設定を確認")
+    print("  4. ログ更新  - ログを再読み込み")
     print("  0. 終了      - プログラムを終了")
     print("-" * 40)
 
@@ -588,7 +589,7 @@ def display_cli():
             # ログ表示領域
             print("\n最新ログ:")
             print("-" * 40)
-            show_recent_logs(5)  # 最新の5行だけ表示
+            show_recent_logs(10)  # 最新の10行を表示
             print("-" * 40)
             
             # コマンド受付と処理
@@ -618,6 +619,10 @@ def display_cli():
                 for key, value in config.items():
                     print(f"{key}: {value}")
                 input("\nEnterキーで戻る...")
+            elif choice == "4":
+                # ログの更新（何もせずに画面を再描画するだけ）
+                print("ログを更新しました")
+                time.sleep(0.5)  # 短い待機で更新を確認できるように
             elif choice == "0":
                 break
             else:
