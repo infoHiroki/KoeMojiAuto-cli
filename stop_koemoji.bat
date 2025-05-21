@@ -1,11 +1,11 @@
 @echo off
-echo KoemojiAutoに停止信号を送信しています...
+echo Stopping KoemojiAuto...
 
-rem 停止フラグファイルを作成
+rem Create stop flag file
 echo 1 > stop_koemoji.flag
 
-echo 停止フラグを作成しました。
-echo プログラムは次のサイクルで終了します（最大5秒）
+echo Stop flag created.
+echo Program will terminate in the next cycle (max 5 seconds)
 
 timeout /t 5 /nobreak > nul
 echo Done

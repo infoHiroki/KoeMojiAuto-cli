@@ -17,17 +17,18 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def show_recent_logs(lines=7):
-    """最新のログを表示"""
+    """最新のログを表示（エンコーディング一致）"""
     log_path = 'koemoji.log'
     if os.path.exists(log_path):
         try:
+            # utils.pyと同じエンコーディングで読み込む
             with open(log_path, 'r', encoding='utf-8') as f:
                 all_lines = f.readlines()
                 recent_lines = all_lines[-lines:] if len(all_lines) >= lines else all_lines
                 for line in recent_lines:
                     print(line.strip())
-        except:
-            print("ログ読み込みエラー")
+        except Exception as e:
+            print(f"ログ読み込みエラー: {e}")
     else:
         print("ログファイルがありません")
 
@@ -37,7 +38,6 @@ def get_status_display():
     status = "実行中" if running else "停止中"
     status_symbol = "●" if running else "○"
     return f"{status_symbol} {status}"
-
 def display_menu():
     """メニューを表示"""
     print("=" * 40)
@@ -67,13 +67,21 @@ def main_loop():
         choice = input("\n選択> ")
         
         if choice == "1":
-            subprocess.run(["start_koemoji.bat"], shell=True)
+            # Windowsの場合は標準出力をリダイレクト
+            if os.name == 'nt':
+                os.system("start_koemoji.bat > nul 2>&1")
+            else:
+                subprocess.run(["./start_koemoji.bat"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print("開始コマンドを実行しました")
-            time.sleep(1)
+            input("\nEnterキーで戻る...")
         elif choice == "2":
-            subprocess.run(["stop_koemoji.bat"], shell=True)
+            # Windowsの場合は標準出力をリダイレクト
+            if os.name == 'nt':
+                os.system("stop_koemoji.bat > nul 2>&1")
+            else:
+                subprocess.run(["./stop_koemoji.bat"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print("停止コマンドを実行しました")
-            time.sleep(1)
+            input("\nEnterキーで戻る...")
         elif choice == "3":
             try:
                 with open("config.json", "r", encoding='utf-8') as f:
@@ -89,7 +97,7 @@ def main_loop():
             break
         else:
             print("無効な選択です")
-            time.sleep(0.5)
+            input("\nEnterキーで戻る...")
 
 # メインプログラム実行
 if __name__ == "__main__":

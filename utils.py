@@ -19,17 +19,24 @@ IS_WINDOWS = platform.system() == 'Windows'
 logger = None
 
 def setup_logging(log_file='koemoji.log', level=logging.INFO):
-    """ロギングの設定"""
+    """ロギングの設定（エンコーディング指定）"""
     global logger
     
-    logging.basicConfig(
-        filename=log_file,
-        level=level,
-        format='%(asctime)s: %(message)s',
-        datefmt='%Y-%m-%d %H:%M'
-    )
+    # ハンドラを直接作成してエンコーディングを指定
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s', '%Y-%m-%d %H:%M'))
     
+    # ロガーの設定
     logger = logging.getLogger("KoemojiAuto")
+    logger.setLevel(level)
+    
+    # 既存のハンドラがあれば削除（重複ログ防止）
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    
+    # 新しいハンドラを追加
+    logger.addHandler(file_handler)
+    
     return logger
 
 def log_and_print(message, level="info"):
