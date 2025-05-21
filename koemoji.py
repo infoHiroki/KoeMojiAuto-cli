@@ -798,7 +798,7 @@ def display_cli():
                 if not is_running:
                     print("すでに停止しています")
                 else:
-                    print("停止中です...")
+                    print("停止中です")
                     
                     # 停止処理を実行
                     stop_result = stop_processing()
