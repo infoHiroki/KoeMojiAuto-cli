@@ -573,76 +573,85 @@ def display_menu():
 
 def display_cli():
     """CLIインターフェースを表示"""
-    # 設定を読み込む
-    load_config()
-    
-    while True:
-        clear_screen()
-        display_menu()
+    try:
+        # 設定を読み込む
+        load_config()
         
-        # ログ表示領域
-        print("\n最新ログ:")
-        print("-" * 40)
-        show_recent_logs(5)  # 最新の5行だけ表示
-        print("-" * 40)
-        
-        # コマンド受付と処理
-        choice = input("\n選択> ")
-        
-        if choice == "1":
-            # Windowsの場合は独自の起動方法
-            if IS_WINDOWS:
-                # 非表示でプロセスを起動
-                subprocess.Popen([sys.executable, sys.argv[0]], 
-                                creationflags=subprocess.CREATE_NO_WINDOW)
-            else:
-                # Unix系はバックグラウンドで起動
-                subprocess.Popen([sys.executable, sys.argv[0], "&"], 
-                                shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        while True:
+            clear_screen()
+            display_menu()
             
-            print("KoemojiAutoを開始しました")
-            input("\nEnterキーで戻る...")
-        elif choice == "2":
-            # 停止フラグを作成
-            with open(STOP_FLAG_FILE, 'w') as f:
-                f.write("1")
-            print("停止フラグを作成しました。プログラムは次のサイクルで終了します。")
-            input("\nEnterキーで戻る...")
-        elif choice == "3":
-            print("\n--- 設定内容 ---")
-            for key, value in config.items():
-                print(f"{key}: {value}")
-            input("\nEnterキーで戻る...")
-        elif choice == "0":
-            break
-        else:
-            print("無効な選択です")
-            input("\nEnterキーで戻る...")
+            # ログ表示領域
+            print("\n最新ログ:")
+            print("-" * 40)
+            show_recent_logs(5)  # 最新の5行だけ表示
+            print("-" * 40)
+            
+            # コマンド受付と処理
+            choice = input("\n選択> ")
+            
+            if choice == "1":
+                # Windowsの場合は独自の起動方法
+                if IS_WINDOWS:
+                    # 非表示でプロセスを起動
+                    subprocess.Popen([sys.executable, sys.argv[0]], 
+                                    creationflags=subprocess.CREATE_NO_WINDOW)
+                else:
+                    # Unix系はバックグラウンドで起動
+                    subprocess.Popen([sys.executable, sys.argv[0], "&"], 
+                                    shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                
+                print("KoemojiAutoを開始しました")
+                input("\nEnterキーで戻る...")
+            elif choice == "2":
+                # 停止フラグを作成
+                with open(STOP_FLAG_FILE, 'w') as f:
+                    f.write("1")
+                print("停止フラグを作成しました。プログラムは次のサイクルで終了します。")
+                input("\nEnterキーで戻る...")
+            elif choice == "3":
+                print("\n--- 設定内容 ---")
+                for key, value in config.items():
+                    print(f"{key}: {value}")
+                input("\nEnterキーで戻る...")
+            elif choice == "0":
+                break
+            else:
+                print("無効な選択です")
+                input("\nEnterキーで戻る...")
+    except Exception as e:
+        print(f"CLIの実行中にエラーが発生しました: {e}")
+        input("\nEnterキーで終了...")  # エラー時にユーザーに確認を求める
 
 #=======================================================================
 # メイン実行部分
 #=======================================================================
 
 if __name__ == "__main__":
-    # コマンドライン引数の解析
-    parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
-    parser.add_argument("--cli", action="store_true", help="CLIモードで起動")
-    parser.add_argument("--stop", action="store_true", help="文字起こしを停止")
-    args = parser.parse_args()
-    
-    # ロギング設定
-    setup_logging()
-    
-    # 引数に基づいて処理を選択
-    if args.cli:
-        # CLIモードで起動
-        display_cli()
-    elif args.stop:
-        # 停止フラグを作成
-        with open(STOP_FLAG_FILE, 'w') as f:
-            f.write("1")
-        print("停止フラグを作成しました。プログラムは次のサイクルで終了します。")
-    else:
-        # 文字起こし処理を実行
-        load_config()
-        run_main_process()
+    try:
+        # コマンドライン引数の解析
+        parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
+        parser.add_argument("--cli", action="store_true", help="CLIモードで起動")
+        parser.add_argument("--stop", action="store_true", help="文字起こしを停止")
+        args = parser.parse_args()
+        
+        # ロギング設定
+        setup_logging()
+        
+        # 引数に基づいて処理を選択
+        if args.cli:
+            # CLIモードで起動
+            display_cli()
+        elif args.stop:
+            # 停止フラグを作成
+            with open(STOP_FLAG_FILE, 'w') as f:
+                f.write("1")
+            print("停止フラグを作成しました。プログラムは次のサイクルで終了します。")
+        else:
+            # 文字起こし処理を実行
+            load_config()
+            run_main_process()
+    except Exception as e:
+        print(f"予期せぬエラーが発生しました: {e}")
+        if "args" in locals() and hasattr(args, "cli") and args.cli:
+            input("\nEnterキーで終了...")  # CLIモードの場合は入力待ち
