@@ -1,10 +1,15 @@
 # KoeMojiAuto
 
 音声・動画ファイルから自動で文字起こしを行うCLIツールです。
+デフォルトは開始時以降、30分ごとに実行されます。
 
 ## 🚀 使い方
 
 ### 初回セットアップ
+1. install.batを実行する。
+2. Setup Complete!　と表示されればOK。
+
+＊上手くいかなかった場合は手動でインストール
 1. 依存関係をインストール：`pip install -r requirements.txt`
 2. 実行すると自動的に以下のフォルダが作成されます：
    - `input/` - 音声・動画ファイルを置くフォルダ
@@ -13,9 +18,10 @@
 
 ### 基本的な使い方
 1. `python koemoji.py` で起動
-2. メニューから「1. 開始」を選択
-3. `input/` フォルダに音声・動画ファイルを配置
+2. `input/` フォルダに音声・動画ファイルを配置
+3. `input/` メニューから「1. 開始」を選択
 4. 自動的に文字起こしが実行され、結果が `output/` に保存されます
+5. 音声ファイルはarchiveフォルダに移動します。
 
 ### 対応ファイル形式
 - 音声：MP3, WAV, M4A, FLAC, OGG, AAC
@@ -27,15 +33,10 @@
 - `language`: 言語設定（"ja"は日本語）
 - `scan_interval_minutes`: フォルダ監視間隔（分）
 
-## 🛠️ 開発者向け
-
-### セットアップ
-```bash
-# 依存関係インストール
-pip install -r requirements.txt
-```
+### ログ情報
+- koemoji.logにあります。長くなりすぎたら削除してください。
 
 ### 要件
-- Python 3.8+
+- Python 3.9以上（FasterWhisperの要件に準ずる）
 - faster-whisper
 - psutil
