@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KoeMojiAuto アーキテクチャ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .tech-stack {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .tech-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .tech-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .tech-item h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .architecture-diagram {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .flow-step {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            min-width: 200px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .flow-step:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .flow-step::after {
+            content: '↓';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .flow-step:last-child::after {
+            display: none;
+        }
+        
+        .component-details {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .component {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .component:hover {
+            border-color: #667eea;
+            background: #e3f2fd;
+        }
+        
+        .component h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .component .icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .code-example {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        
+        .highlight {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        
+        .close:hover {
+            color: #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header h1 { font-size: 2em; }
+            .flow-container { gap: 15px; }
+            .flow-step { min-width: 150px; padding: 15px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 KoeMojiAuto</h1>
+            <h2>音声文字起こしシステム アーキテクチャ</h2>
+        </div>
+
+        <!-- 技術スタック -->
+        <div class="tech-stack">
+            <h2>🛠️ 技術スタック</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <h4>🐍 Python 3.8+</h4>
+                    <p>メイン開発言語。非同期処理、ファイル操作、システム統合に使用</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🎧 faster-whisper</h4>
+                    <p>OpenAI Whisperの高速実装。音声認識のコアエンジン</p>
+                </div>
+                <div class="tech-item">
+                    <h4>⚡ psutil</h4>
+                    <p>システムリソース監視。CPU使用率制御とプロセス管理</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🧵 threading</h4>
+                    <p>並行処理制御。ファイル監視と処理の分離</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- アーキテクチャ図 -->
+        <div class="architecture-diagram">
+            <h2>🏗️ システムアーキテクチャ</h2>
+            <div class="flow-container">
+                <div class="flow-step" onclick="showDetail('input')">
+                    📁 INPUT フォルダ<br>
+                    <small>音声・動画ファイル配置</small>
+                </div>
+                <div class="flow-step" onclick="showDetail('scanner')">
+                    🔍 ファイル監視<br>
+                    <small>定期スキャン（30分間隔）</small>
+                </div>
+                <div class="flow-step" onclick="showDetail('queue')">
+                    📋 処理キュー<br>
+                    <small>ファイルリスト管理</small>
+                </div>
+                <div class="flow-step" onclick="showDetail('whisper')">
+                    🤖 Whisper エンジン<br>
+                    <small>音声認識処理</small>
+                </div>
+                <div class="flow-step" onclick="showDetail('output')">
+                    📄 OUTPUT フォルダ<br>
+                    <small>テキスト結果出力</small>
+                </div>
+                <div class="flow-step" onclick="showDetail('archive')">
+                    🗃️ ARCHIVE フォルダ<br>
+                    <small>処理済みファイル保管</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- コンポーネント詳細 -->
+        <div class="component-details">
+            <h2>⚙️ 主要コンポーネント</h2>
+            <div class="component-grid">
+                <div class="component" onclick="showCode('fileWatcher')">
+                    <h3><span class="icon">👁️</span>ファイル監視システム</h3>
+                    <p><span class="highlight">scan_and_queue_files()</span></p>
+                    <p>• 定期的な入力フォルダスキャン</p>
+                    <p>• 対応形式フィルタリング</p>
+                    <p>• 重複処理防止</p>
+                </div>
+                
+                <div class="component" onclick="showCode('queueManager')">
+                    <h3><span class="icon">📊</span>キュー管理</h3>
+                    <p><span class="highlight">processing_queue</span></p>
+                    <p>• FIFO方式のファイル処理</p>
+                    <p>• メタデータ付きキューイング</p>
+                    <p>• 同時処理数制御</p>
+                </div>
+                
+                <div class="component" onclick="showCode('whisperIntegration')">
+                    <h3><span class="icon">🎤</span>音声認識エンジン</h3>
+                    <p><span class="highlight">transcribe_audio()</span></p>
+                    <p>• Whisperモデル管理</p>
+                    <p>• 日本語音声認識</p>
+                    <p>• セグメント単位処理</p>
+                </div>
+                
+                <div class="component" onclick="showCode('resourceManager')">
+                    <h3><span class="icon">🔧</span>リソース管理</h3>
+                    <p><span class="highlight">wait_for_resources()</span></p>
+                    <p>• CPU使用率監視</p>
+                    <p>• メモリ効率化</p>
+                    <p>• グレースフルシャットダウン</p>
+                </div>
+                
+                <div class="component" onclick="showCode('errorHandling')">
+                    <h3><span class="icon">🛡️</span>エラーハンドリング</h3>
+                    <p><span class="highlight">cleanup_on_exit()</span></p>
+                    <p>• 段階的例外処理</p>
+                    <p>• ログベース状態追跡</p>
+                    <p>• 自動復旧機能</p>
+                </div>
+                
+                <div class="component" onclick="showCode('cliInterface')">
+                    <h3><span class="icon">💻</span>CLIインターフェース</h3>
+                    <p><span class="highlight">display_cli()</span></p>
+                    <p>• シンプルメニュー</p>
+                    <p>• リアルタイムログ表示</p>
+                    <p>• 対話的操作</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設計パターン -->
+        <div class="component-details">
+            <h2>🎯 採用された設計パターン</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <h4>📤 Producer-Consumer パターン</h4>
+                    <p>ファイル監視（Producer）と処理実行（Consumer）の分離</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🔄 State Machine パターン</h4>
+                    <p>ファイル処理状態の管理（待機→処理中→完了→アーカイブ）</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🎛️ Strategy パターン</h4>
+                    <p>設定ファイルによる動作カスタマイズ</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🔒 Singleton パターン</h4>
+                    <p>Whisperモデルの単一インスタンス管理</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modal-title"></h3>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        function showDetail(component) {
+            const details = {
+                'input': {
+                    title: '📁 INPUT フォルダ',
+                    content: `
+                        <p><strong>役割:</strong> 音声・動画ファイルの入力点</p>
+                        <div class="code-example">
+# 対応ファイル形式
+media_extensions = (
+    '.mp3', '.mp4', '.wav', '.m4a', 
+    '.mov', '.avi', '.flac', '.ogg', '.aac'
+)</div>
+                        <p><strong>特徴:</strong></p>
+                        <ul>
+                            <li>ドラッグ&ドロップでファイル配置</li>
+                            <li>複数ファイル同時処理対応</li>
+                            <li>大容量ファイル対応</li>
+                        </ul>
+                    `
+                },
+                'scanner': {
+                    title: '🔍 ファイル監視システム',
+                    content: `
+                        <p><strong>監視方式:</strong> 定期ポーリング（30分間隔）</p>
+                        <div class="code-example">
+def scan_and_queue_files():
+    for file in os.listdir(input_folder):
+        if file.lower().endswith(media_extensions):
+            if not is_file_queued_or_processing(file_path):
+                processing_queue.append(file_info)</div>
+                        <p><strong>機能:</strong></p>
+                        <ul>
+                            <li>新規ファイル自動検出</li>
+                            <li>重複処理防止</li>
+                            <li>ファイル情報メタデータ付与</li>
+                        </ul>
+                    `
+                },
+                'queue': {
+                    title: '📋 処理キューシステム',
+                    content: `
+                        <p><strong>データ構造:</strong> Python List（FIFO）</p>
+                        <div class="code-example">
+file_info = {
+    "path": file_path,
+    "name": file_name,
+    "size": file_size,
+    "queued_at": timestamp
+}</div>
+                        <p><strong>制御機能:</strong></p>
+                        <ul>
+                            <li>同時処理数制限（デフォルト3件）</li>
+                            <li>処理状態管理</li>
+                            <li>優先度制御</li>
+                        </ul>
+                    `
+                },
+                'whisper': {
+                    title: '🤖 Whisper音声認識エンジン',
+                    content: `
+                        <p><strong>実装:</strong> faster-whisper（CTranslate2ベース）</p>
+                        <div class="code-example">
+model = WhisperModel("large", compute_type="int8")
+segments, info = model.transcribe(
+    file_path, 
+    language="ja", 
+    beam_size=5
+)</div>
+                        <p><strong>最適化:</strong></p>
+                        <ul>
+                            <li>量子化（int8）によるメモリ効率化</li>
+                            <li>モデル再利用でロード時間短縮</li>
+                            <li>VADフィルタで精度向上</li>
+                        </ul>
+                    `
+                },
+                'output': {
+                    title: '📄 OUTPUT フォルダ',
+                    content: `
+                        <p><strong>出力形式:</strong> UTF-8テキストファイル</p>
+                        <div class="code-example">
+# ファイル名例
+input:  meeting_2025-05-22.mp3
+output: meeting_2025-05-22.txt</div>
+                        <p><strong>特徴:</strong></p>
+                        <ul>
+                            <li>元ファイル名ベースの命名</li>
+                            <li>文字化け防止（UTF-8）</li>
+                            <li>セグメント区切りでの出力</li>
+                        </ul>
+                    `
+                },
+                'archive': {
+                    title: '🗃️ ARCHIVE フォルダ',
+                    content: `
+                        <p><strong>役割:</strong> 処理完了ファイルの保管</p>
+                        <div class="code-example">
+def safe_move_file(source, destination):
+    # 同名ファイル存在時は自動リネーム
+    if dest_path.exists():
+        new_name = f"{stem}_{counter}{suffix}"</div>
+                        <p><strong>機能:</strong></p>
+                        <ul>
+                            <li>同名ファイル自動リネーム</li>
+                            <li>安全なファイル移動</li>
+                            <li>ディスク容量管理</li>
+                        </ul>
+                    `
+                }
+            };
+            
+            const detail = details[component];
+            if (detail) {
+                document.getElementById('modal-title').innerHTML = detail.title;
+                document.getElementById('modal-body').innerHTML = detail.content;
+                document.getElementById('modal').style.display = 'block';
+            }
+        }
+
+        function showCode(component) {
+            const codeExamples = {
+                'fileWatcher': {
+                    title: '👁️ ファイル監視システム実装',
+                    content: `
+                        <div class="code-example">
+def scan_and_queue_files():
+    """入力フォルダをスキャンしてファイルをキューに追加"""
+    input_folder = config.get("input_folder")
+    media_extensions = ('.mp3', '.mp4', '.wav', '.m4a', 
+                       '.mov', '.avi', '.flac', '.ogg', '.aac')
+    
+    new_files = []
+    for file in os.listdir(input_folder):
+        file_path = os.path.join(input_folder, file)
+        
+        if (os.path.isfile(file_path) and 
+            file.lower().endswith(media_extensions) and
+            not is_file_queued_or_processing(file_path)):
+            
+            new_files.append(file_path)
+    
+    for file_path in new_files:
+        file_info = {
+            "path": file_path,
+            "name": os.path.basename(file_path),
+            "size": os.path.getsize(file_path),
+            "queued_at": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        processing_queue.append(file_info)</div>
+                        <p><strong>ポイント:</strong></p>
+                        <ul>
+                            <li>拡張子フィルタリングで対象ファイルのみ処理</li>
+                            <li>重複処理チェックでリソース効率化</li>
+                            <li>メタデータ付きでトレーサビリティ確保</li>
+                        </ul>
+                    `
+                },
+                'queueManager': {
+                    title: '📊 キュー管理システム',
+                    content: `
+                        <div class="code-example">
+def process_next_file():
+    """キューの次のファイルを処理"""
+    if not processing_queue:
+        return False
+    
+    # リソース使用状況確認
+    if not wait_for_resources():
+        return False
+    
+    # 同時処理数確認
+    max_concurrent = config.get("max_concurrent_files", 3)
+    if len(files_in_process) >= max_concurrent:
+        return False
+    
+    # 次のファイルを取得
+    file_info = processing_queue.pop(0)
+    return process_file(file_info["path"])</div>
+                        <p><strong>制御機能:</strong></p>
+                        <ul>
+                            <li>FIFO方式で順序処理保証</li>
+                            <li>CPU使用率ベースのリソース制御</li>
+                            <li>設定可能な同時処理数制限</li>
+                        </ul>
+                    `
+                },
+                'whisperIntegration': {
+                    title: '🎤 Whisper統合実装',
+                    content: `
+                        <div class="code-example">
+def transcribe_audio(file_path):
+    """音声ファイルを文字起こし"""
+    from faster_whisper import WhisperModel
+    
+    model_size = config.get("whisper_model", "large")
+    compute_type = config.get("compute_type", "int8")
+    
+    # モデル効率的管理
+    if (whisper_model is None or 
+        model_config != (model_size, compute_type)):
+        whisper_model = WhisperModel(model_size, 
+                                   compute_type=compute_type)
+        model_config = (model_size, compute_type)
+    
+    # 文字起こし実行
+    segments, info = whisper_model.transcribe(
+        file_path,
+        language=config.get("language", "ja"),
+        beam_size=5,
+        best_of=5,
+        vad_filter=True
+    )
+    
+    return "\\n".join([seg.text.strip() for seg in segments])</div>
+                        <p><strong>最適化技術:</strong></p>
+                        <ul>
+                            <li>モデル再利用でメモリ効率化</li>
+                            <li>int8量子化で高速化</li>
+                            <li>VADフィルタで精度向上</li>
+                        </ul>
+                    `
+                },
+                'resourceManager': {
+                    title: '🔧 リソース管理システム',
+                    content: `
+                        <div class="code-example">
+def wait_for_resources(max_wait_seconds=5):
+    """リソースが利用可能になるまで待機"""
+    import psutil
+    
+    max_cpu = config.get("max_cpu_percent", 95)
+    start_time = time.time()
+    
+    while time.time() - start_time < max_wait_seconds:
+        if stop_requested:
+            return False
+            
+        cpu_percent = psutil.cpu_percent(interval=1)
+        
+        if cpu_percent <= max_cpu:
+            return True
+            
+        time.sleep(1)
+    
+    return False  # タイムアウト
+
+# グレースフルシャットダウン
+def cleanup_on_exit():
+    global stop_requested, is_running
+    stop_requested = True
+    is_running = False
+    
+    if processing_thread and processing_thread.is_alive():
+        processing_thread.join(timeout=10)</div>
+                        <p><strong>制御機能:</strong></p>
+                        <ul>
+                            <li>CPU使用率監視と処理制御</li>
+                            <li>安全な終了処理</li>
+                            <li>タイムアウト付きリソース待機</li>
+                        </ul>
+                    `
+                },
+                'errorHandling': {
+                    title: '🛡️ エラーハンドリング戦略',
+                    content: `
+                        <div class="code-example">
+# シグナルハンドリング
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+atexit.register(cleanup_on_exit)
+
+def process_file(file_path):
+    try:
+        files_in_process.add(file_path)
+        
+        # 処理実行
+        transcription = transcribe_audio(file_path)
+        
+        if transcription:
+            # 成功時の処理
+            save_output(transcription)
+            archive_file(file_path)
+        else:
+            log_and_print(f"処理失敗: {file_name}", "error")
+            
+    except Exception as e:
+        log_and_print(f"エラー発生: {e}", "error")
+    finally:
+        # 必ずクリーンアップ
+        if file_path in files_in_process:
+            files_in_process.remove(file_path)</div>
+                        <p><strong>エラー戦略:</strong></p>
+                        <ul>
+                            <li>段階的例外キャッチ</li>
+                            <li>1ファイル失敗で全体停止しない設計</li>
+                            <li>確実なリソースクリーンアップ</li>
+                        </ul>
+                    `
+                },
+                'cliInterface': {
+                    title: '💻 CLI インターフェース',
+                    content: `
+                        <div class="code-example">
+def display_cli():
+    """CLIインターフェースを表示"""
+    while True:
+        clear_screen()
+        display_menu()
+        
+        # リアルタイムログ表示
+        print("\\n最新ログ:")
+        print("-" * 40)
+        show_recent_logs(10)
+        print("-" * 40)
+        
+        choice = input("\\n選択> ")
+        
+        if choice == "1":
+            if start_processing():
+                print("処理を開始しました")
+            else:
+                print("すでに実行中です")
+        elif choice == "2":
+            # 設定表示
+            for key, value in config.items():
+                print(f"{key}: {value}")
+
+def show_recent_logs(lines=10):
+    """最新のログを表示"""
+    with open('koemoji.log', 'rb') as f:
+        # 末尾から読み込み
+        f.seek(0, 2)
+        file_size = f.tell()
+        read_size = min(10240, file_size)
+        f.seek(max(0, file_size - read_size), 0)
+        
+        data = f.read()
+        text = data.decode('utf-8')
+        recent_lines = text.splitlines()[-lines:]
+        
+        for line in recent_lines:
+            print(line.strip())</div>
+                        <p><strong>UI特徴:</strong></p>
+                        <ul>
+                            <li>シンプルなメニュー型操作</li>
+                            <li>リアルタイムログ表示</li>
+                            <li>エンコーディング対応</li>
+                        </ul>
+                    `
+                }
+            };
+            
+            const example = codeExamples[component];
+            if (example) {
+                document.getElementById('modal-title').innerHTML = example.title;
+                document.getElementById('modal-body').innerHTML = example.content;
+                document.getElementById('modal').style.display = 'block';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
