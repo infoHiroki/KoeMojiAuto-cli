@@ -36,9 +36,6 @@ is_running = False
 stop_requested = False
 processing_thread = None
 
-# 停止フラグファイル（互換性のために残す、起動時に削除）
-STOP_FLAG_FILE = "stop_koemoji.flag"
-
 # デフォルト設定
 DEFAULT_CONFIG = {
     "input_folder": "input",
@@ -63,26 +60,7 @@ def cleanup_on_exit():
     # 停止要求フラグを立てる
     stop_requested = True
     is_running = False
-    
-    # 停止フラグファイルを作成（もし外部から呼ばれた場合のために）
-    try:
-        if not os.path.exists(STOP_FLAG_FILE):
-            with open(STOP_FLAG_FILE, 'w') as f:
-                f.write(str(time.time()))
-    except:
-        pass
         
-    # 少し待機してから停止フラグファイルを削除（他のプロセスが読み取る時間を確保）
-    time.sleep(0.5)
-    
-    # 停止フラグファイルが存在すれば削除
-    if os.path.exists(STOP_FLAG_FILE):
-        try:
-            os.remove(STOP_FLAG_FILE)
-            # 不要なログ出力を削除
-        except:
-            pass
-    
     # 処理スレッドが動いていれば最大10秒待つ
     if processing_thread and processing_thread.is_alive():
         processing_thread.join(timeout=10)
@@ -91,19 +69,7 @@ def cleanup_on_exit():
         logger.info("KoeMojiAutoを終了しました")
 
 def reset_state():
-    """状態をリセット - 古いプロセスやフラグを削除"""
-    # 停止フラグを削除
-    if os.path.exists(STOP_FLAG_FILE):
-        try:
-            os.remove(STOP_FLAG_FILE)
-            # ログ出力を内部処理のみに変更
-            if logger:
-                logger.debug("古い停止フラグファイルを削除しました")
-            else:
-                print("古い停止フラグファイルを削除しました")
-        except:
-            print("停止フラグの削除に失敗しました")
-    
+    """状態をリセット - 古いプロセスを削除"""
     # 関連するPythonプロセスを検索して終了
     current_pid = os.getpid()
     killed = False
@@ -597,69 +563,8 @@ def processing_loop():
         
         # メインループ
         while is_running and not stop_requested:
-            # 停止フラグファイルのチェック（外部からの停止命令に対応）
-            if os.path.exists(STOP_FLAG_FILE):
-                log_and_print("停止フラグファイルを検出しました。プログラムを再起動します。", category="システム", print_console=False)
-                try:
-                    os.remove(STOP_FLAG_FILE)
-                except:
-                    pass
-                stop_requested = True
-                is_running = False
-                
-                # 再起動用バッチファイルを作成
-                try:
-                    with open("restart_koemoji.bat", "w") as f:
-                        f.write('@echo off\n')
-                        f.write('timeout /t 1 /nobreak >nul\n')  # 短い待機
-                        f.write('start "" koemoji_cli.bat\n')    # 新しいウィンドウで起動
-                        f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')  # 元のウィンドウを閉じる
-                        f.write('exit\n')                        # バッチ終了
-                    
-                    # バッチファイルを実行
-                    import subprocess
-                    subprocess.Popen("restart_koemoji.bat", shell=True)
-                    
-                    # 正常終了
-                    sys.exit(0)
-                except Exception as e:
-                    log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
-                
-                break  # ループを確実に抜ける
-            
             # ファイル処理
             while process_next_file():
-                # 処理内でも停止フラグファイルをチェック
-                if os.path.exists(STOP_FLAG_FILE):
-                    log_and_print("停止フラグファイルを検出しました。プログラムを再起動します。", category="システム", print_console=False)
-                    try:
-                        os.remove(STOP_FLAG_FILE)
-                    except:
-                        pass
-                    stop_requested = True
-                    is_running = False
-                    
-                    # 再起動用バッチファイルを作成
-                    try:
-                        with open("restart_koemoji.bat", "w") as f:
-                            f.write('@echo off\n')
-                            f.write('timeout /t 1 /nobreak >nul\n')  # 短い待機
-                            f.write('start "" koemoji_cli.bat\n')    # 新しいウィンドウで起動
-                            f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')  # 元のウィンドウを閉じる
-                            f.write('exit\n')                        # バッチ終了
-
-                        # バッチファイルを実行
-                        import subprocess # subprocess はここでインポートしても問題ないケースが多い
-                        # import os  # ← この行を削除またはコメントアウト
-                        subprocess.Popen("restart_koemoji.bat", shell=True)
-
-                        # より強力な終了方法を使用（通常のクリーンアップルーチンをスキップ）
-                        os._exit(0)  # グローバルスコープの os が使われる
-                    except Exception as e:
-                        log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
-
-                    break
-                
                 if stop_requested:
                     break
                 time.sleep(0.1)  # 短い待機
@@ -697,40 +602,27 @@ def start_processing():
     
     return True
 
-def stop_processing():
-    """文字起こし処理を停止（再起動による完全停止）"""
-    global is_running, stop_requested
-
-    if not is_running:
-        return False
-
-    stop_requested = True
-    is_running = False
-
-    log_and_print("停止要求により完全停止します。プログラムを再起動します。", category="システム")
-
-    if os.path.exists(STOP_FLAG_FILE):
-        try:
-            os.remove(STOP_FLAG_FILE)
-        except:
-            pass
-
+def restart_application():
+    """Pythonの内部ロジックでアプリケーションを再起動"""
     try:
-        with open("restart_koemoji.bat", "w") as f:
-            f.write('@echo off\n')
-            f.write('timeout /t 1 /nobreak >nul\n')
-            f.write('start "" koemoji_cli.bat\n')
-            f.write('taskkill /F /FI "WINDOWTITLE eq KoeMoji*" /T >nul 2>&1\n')
-            f.write('exit\n')
-
+        log_and_print("アプリケーションを再起動します...", category="システム")
+        
+        # 現在の引数を取得（--cliは除外してデフォルトに戻す）
+        restart_args = [arg for arg in sys.argv if arg != '--cli']
+        
+        # 新しいプロセスを開始
         import subprocess
-        # import os  # ← この行を削除またはコメントアウト
-        subprocess.Popen("restart_koemoji.bat", shell=True)
-
-        os._exit(0) # グローバルスコープの os が使われる
+        subprocess.Popen([sys.executable] + restart_args)
+        
+        # 現在のプロセスを終了
+        log_and_print("再起動処理を完了しました", category="システム")
+        sys.exit(0)
+        
     except Exception as e:
         log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
         return False
+
+    return True
     
 #=======================================================================
 # CLI インターフェース
@@ -814,7 +706,7 @@ def display_menu():
     print(f"状態: {get_status_display()}")
     print("-" * 40)
     print("  1. 開始      - 文字起こしを開始")
-    print("  2. 停止      - 処理を中断して再起動")
+    print("  2. 再起動    - 処理を再起動")
     print("  3. 設定表示  - 現在の設定を確認")
     print("  4. リセット  - 状態を初期化")
     print("-" * 40)
@@ -825,15 +717,6 @@ def display_cli():
     
     try:
         while True:
-            # 停止フラグファイルをチェック（外部からの停止命令をCLIにも反映）
-            if os.path.exists(STOP_FLAG_FILE):
-                is_running = False
-                try:
-                    os.remove(STOP_FLAG_FILE)
-                except:
-                    pass
-                print("外部からの停止シグナルを検出しました。状態を停止に更新します。")
-                
             clear_screen()
             display_menu()
             
@@ -856,16 +739,15 @@ def display_cli():
                         print("処理の開始に失敗しました")
                 input("\nEnterキーで戻る...")
             elif choice == "2":
-                if not is_running:
-                    print("すでに停止しています")
-                else:
-                    print("停止中です（プログラムを再起動して処理を中断します）...")
-                    
-                    # 停止処理を実行（再起動）
-                    stop_result = stop_processing()
-                    
+                print("\nアプリケーションを再起動しますか？")
+                print("※現在の処理は中断されます")
+                confirm = input("実行する場合は 'y' または 'yes' を入力してください: ")
+                if confirm.lower() in ['y', 'yes']:
+                    restart_application()
                     # 正常に再起動した場合、ここには到達しない
-                    print("プログラムの再起動に失敗しました。もう一度お試しください。")
+                    print("再起動に失敗しました。もう一度お試しください。")
+                else:
+                    print("再起動をキャンセルしました。")
                 input("\nEnterキーで戻る...")
             elif choice == "3":
                 print("\n--- 設定内容 ---")
@@ -875,6 +757,7 @@ def display_cli():
             elif choice == "4":
                 print("\n状態をリセットします...")
                 reset_state()
+                print("リセットが完了しました。")
                 input("\nEnterキーで戻る...")
             else:
                 print("ログを更新しました（無効な選択がログ更新として機能します）")
@@ -887,25 +770,35 @@ def display_cli():
 
 if __name__ == "__main__":
     try:
-        # コマンドライン引数の解析
+        # コマンドライン引数の解析（KISS原則: 最小限から開始）
         parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
-        parser.add_argument("--cli", action="store_true", help="CLIモードで起動")
+        parser.add_argument("--cli", action="store_true", help="CLIモードで起動（デフォルト）")
+        parser.add_argument("--status", action="store_true", help="現在の状態を表示")
         parser.add_argument("--reset", action="store_true", help="状態をリセット")
-        parser.add_argument("--stop", action="store_true", help="実行中のプロセスを停止")
+        parser.add_argument("--start", action="store_true", help="バックグラウンドで処理を開始")
         args = parser.parse_args()
         
-        # --stopオプションの処理（最優先）
-        if hasattr(args, 'stop') and args.stop:
-            # 停止フラグファイルを作成
-            try:
-                with open(STOP_FLAG_FILE, 'w') as f:
-                    f.write(str(time.time()))  # タイムスタンプ付きで作成
-                print("停止シグナルを送信しました。プログラムは再起動します。")
-                import os
-                os._exit(0)
-            except Exception as e:
-                print(f"停止シグナルの送信中にエラーが発生しました: {e}")
-                os._exit(1)
+        # --statusオプションの処理（読み取り専用、安全）
+        if args.status:
+            print("KoeMojiAuto ステータス")
+            print("=" * 30)
+            
+            # プロセス状態の確認（シンプル化）
+            print("状態: 停止中")
+            
+            # 設定確認（setup_logging/load_configの前でも安全な表示）
+            print(f"設定ファイル: {'存在' if os.path.exists('config.json') else '未作成'}")
+            print(f"入力フォルダ: {'存在' if os.path.exists('input') else '未作成'}")
+            print(f"出力フォルダ: {'存在' if os.path.exists('output') else '未作成'}")
+            
+            sys.exit(0)
+        
+        # --resetオプションの処理（シンプルなリセット）
+        if args.reset:
+            print("システム状態をリセットします...")
+            reset_state()
+            print("リセットが完了しました。")
+            sys.exit(0)
         
         # 起動時にシステム状態をリセット（古いプロセスとフラグを削除）
         reset_state()
@@ -916,8 +809,34 @@ if __name__ == "__main__":
         # 設定を読み込む
         load_config()
         
-        # CLI表示
-        display_cli()
+        # --startオプションの処理（設定読み込み後）
+        if args.start:
+            print("バックグラウンドで文字起こし処理を開始します...")
+            if start_processing():
+                print("処理を開始しました。")
+                print("停止する場合は: Ctrl+C または ×ボタン")
+                
+                # バックグラウンド実行：メインプロセスを継続
+                try:
+                    while is_running and not stop_requested:
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    print("\nCtrl+Cで停止しました。")
+                finally:
+                    # 終了時のクリーンアップ
+                    stop_requested = True
+                    is_running = False
+                sys.exit(0)
+            else:
+                print("処理の開始に失敗しました。")
+                sys.exit(1)
+        
+        # 実行モード分岐（現時点ではCLIのみ）
+        if args.cli or len(sys.argv) == 1:  # 引数なしの場合もCLI
+            display_cli()
+        else:
+            # 将来の拡張用（現時点ではCLIと同じ）
+            display_cli()
         
     except Exception as e:
         print(f"予期せぬエラーが発生しました: {e}")
