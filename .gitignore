@@ -59,6 +59,7 @@ tmp/
 dist/
 build/
 *.egg-info/
+*.spec
 
 # System files
 Thumbs.db

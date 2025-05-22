@@ -178,7 +178,7 @@ def load_config(config_path="config.json"):
         if not os.path.exists(config_path):
             # 初回使用時：デフォルト値を設定
             log_and_print("設定ファイルが見つからないため、デフォルト設定を使用します。")
-            config = DEFAULT_CONFIG.copy()
+            config = DEFAULT_CONFIG.copy().copy()
             save_config(config_path)
         else:
             # 設定読み込み
@@ -196,7 +196,7 @@ def load_config(config_path="config.json"):
                     save_config(config_path)
                 except:
                     log_and_print("設定ファイルを読み込めませんでした。デフォルト設定を使用します。", "error")
-                    config = DEFAULT_CONFIG.copy()
+                    config = DEFAULT_CONFIG.copy().copy()
                     save_config(config_path)
             
             # 設定値の検証
@@ -210,14 +210,14 @@ def load_config(config_path="config.json"):
                 
     except Exception as e:
         log_and_print(f"設定の読み込み中にエラーが発生しました: {e}", "error")
-        config = DEFAULT_CONFIG.copy()
+        config = DEFAULT_CONFIG.copy().copy()
 
 def validate_config():
     """設定値の妥当性をチェック"""
     global config
     
     # 必須項目がない場合はデフォルト値を設定
-    for key, default in DEFAULT_CONFIG.items():
+    for key, default in DEFAULT_CONFIG.items():.items():
         if key not in config:
             log_and_print(f"必須設定 '{key}' が見つかりません。デフォルト値 '{default}' を使用します。", "warning")
             config[key] = default
