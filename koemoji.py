@@ -217,7 +217,7 @@ def validate_config():
     global config
     
     # 必須項目がない場合はデフォルト値を設定
-    for key, default in DEFAULT_CONFIG.items():.items():
+    for key, default in DEFAULT_CONFIG.items():
         if key not in config:
             log_and_print(f"必須設定 '{key}' が見つかりません。デフォルト値 '{default}' を使用します。", "warning")
             config[key] = default
