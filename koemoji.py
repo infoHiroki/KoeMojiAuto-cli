@@ -36,13 +36,8 @@ is_running = False
 stop_requested = False
 processing_thread = None
 
-# PyInstaller対応のベースディレクトリ取得
-if getattr(sys, 'frozen', False):
-    # EXE実行時
-    BASE_DIR = os.path.dirname(sys.executable)
-else:
-    # 通常のPython実行時
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 実行ディレクトリをベースディレクトリとして使用
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # デフォルト設定
 DEFAULT_CONFIG = {

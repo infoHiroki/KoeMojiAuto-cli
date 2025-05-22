@@ -2,17 +2,17 @@
 
 音声・動画ファイルから自動で文字起こしを行うCLIツールです。
 
-## 🚀 EXE版の使い方
+## 🚀 使い方
 
 ### 初回セットアップ
-1. `KoeMojiAuto.exe` を任意のフォルダに配置
+1. 依存関係をインストール：`pip install -r requirements.txt`
 2. 実行すると自動的に以下のフォルダが作成されます：
    - `input/` - 音声・動画ファイルを置くフォルダ
    - `output/` - 文字起こし結果（テキストファイル）
    - `archive/` - 処理済みファイルの保管場所
 
 ### 基本的な使い方
-1. `KoeMojiAuto.exe` をダブルクリックで起動
+1. `python koemoji.py` で起動
 2. メニューから「1. 開始」を選択
 3. `input/` フォルダに音声・動画ファイルを配置
 4. 自動的に文字起こしが実行され、結果が `output/` に保存されます
@@ -29,14 +29,10 @@
 
 ## 🛠️ 開発者向け
 
-### ビルド方法
+### セットアップ
 ```bash
 # 依存関係インストール
 pip install -r requirements.txt
-pip install pyinstaller
-
-# EXEビルド
-build.bat
 ```
 
 ### 要件
