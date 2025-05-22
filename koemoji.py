@@ -36,11 +36,19 @@ is_running = False
 stop_requested = False
 processing_thread = None
 
+# PyInstaller対応のベースディレクトリ取得
+if getattr(sys, 'frozen', False):
+    # EXE実行時
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    # 通常のPython実行時
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # デフォルト設定
 DEFAULT_CONFIG = {
-    "input_folder": "input",
-    "output_folder": "output", 
-    "archive_folder": "archive",
+    "input_folder": os.path.join(BASE_DIR, "input"),
+    "output_folder": os.path.join(BASE_DIR, "output"), 
+    "archive_folder": os.path.join(BASE_DIR, "archive"),
     "scan_interval_minutes": 30,
     "max_concurrent_files": 3,
     "whisper_model": "large",
@@ -68,33 +76,7 @@ def cleanup_on_exit():
     if logger:
         logger.info("KoeMojiAutoを終了しました")
 
-def cleanup_old_processes():
-    """起動時に古いプロセスをクリーンアップ"""
-    current_pid = os.getpid()
-    killed = False
-    
-    try:
-        for proc in psutil.process_iter(['pid', 'cmdline']):
-            try:
-                if proc.pid == current_pid:
-                    continue
-                    
-                cmdline = proc.info.get('cmdline')
-                if cmdline and len(cmdline) > 1:
-                    # koemoji.pyを実行している他のプロセスを探す
-                    if any('koemoji.py' in arg for arg in cmdline):
-                        proc.terminate()
-                        killed = True
-                        print(f"関連するプロセス(PID: {proc.pid})を終了しました")
-            except:
-                pass
-    except:
-        print("プロセスのクリーンアップに失敗しました")
-    
-    if killed:
-        print("システムをリセットしました。起動を続行します。")
-    
-    return killed
+
 
 # 終了時の処理を登録
 atexit.register(cleanup_on_exit)
@@ -606,21 +588,24 @@ def restart_application():
     try:
         log_and_print("アプリケーションを再起動します...", category="システム")
         
-        # シンプルに同じスクリプトを再起動
+        # 新しいプロセスを起動
         script_name = sys.argv[0]
         cmd = f'start "" "{sys.executable}" "{script_name}"'
         
         import subprocess
         subprocess.Popen(cmd, shell=True)
         
+        # 少し待ってから古いプロセスを終了（新しいプロセスの起動を待つ）
+        import time
+        time.sleep(1)
+        
+        # 現在のプロセスを終了
         log_and_print("再起動処理を完了しました", category="システム")
         sys.exit(0)
         
     except Exception as e:
         log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
         return False
-
-    return True
     
 #=======================================================================
 # CLI インターフェース
@@ -779,9 +764,6 @@ if __name__ == "__main__":
             print(f"出力フォルダ: {'存在' if os.path.exists('output') else '未作成'}")
             
             sys.exit(0)
-        
-        # 起動時にシステム状態をリセット（古いプロセス削除）
-        cleanup_old_processes()
         
         # ロギング設定
         setup_logging()
