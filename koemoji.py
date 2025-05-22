@@ -68,9 +68,8 @@ def cleanup_on_exit():
     if logger:
         logger.info("KoeMojiAutoを終了しました")
 
-def reset_state():
-    """状態をリセット - 古いプロセスを削除"""
-    # 関連するPythonプロセスを検索して終了
+def cleanup_old_processes():
+    """起動時に古いプロセスをクリーンアップ"""
     current_pid = os.getpid()
     killed = False
     
@@ -603,18 +602,17 @@ def start_processing():
     return True
 
 def restart_application():
-    """Pythonの内部ロジックでアプリケーションを再起動"""
+    """アプリケーションを再起動"""
     try:
         log_and_print("アプリケーションを再起動します...", category="システム")
         
-        # 現在の引数を取得（--cliは除外してデフォルトに戻す）
-        restart_args = [arg for arg in sys.argv if arg != '--cli']
+        # シンプルに同じスクリプトを再起動
+        script_name = sys.argv[0]
+        cmd = f'start "" "{sys.executable}" "{script_name}"'
         
-        # 新しいプロセスを開始
         import subprocess
-        subprocess.Popen([sys.executable] + restart_args)
+        subprocess.Popen(cmd, shell=True)
         
-        # 現在のプロセスを終了
         log_and_print("再起動処理を完了しました", category="システム")
         sys.exit(0)
         
@@ -630,17 +628,13 @@ def restart_application():
 
 def clear_screen():
     """画面をクリアしてタイトルを設定"""
-    # 実行状態を文字列で取得
-    status = "実行中" if is_running else "停止中"
-    
     if IS_WINDOWS:
         os.system('cls')
-        # Windowsでタイトルを設定（状態を含める）
-        os.system(f'title KoeMoji-{status}')
+        # シンプルに固定タイトル
+        os.system('title KoeMoji')
     else:
         os.system('clear')
-        # Linux/Macではエスケープシーケンスでタイトル設定
-        print(f"\033]0;KoeMoji-{status}\007", end="")
+        print("\033]0;KoeMoji\007", end="")
 
 def show_recent_logs(lines=10):
     """最新のログを表示"""
@@ -708,7 +702,6 @@ def display_menu():
     print("  1. 開始      - 文字起こしを開始")
     print("  2. 再起動    - 処理を再起動")
     print("  3. 設定表示  - 現在の設定を確認")
-    print("  4. リセット  - 状態を初期化")
     print("-" * 40)
 
 def display_cli():
@@ -754,11 +747,6 @@ def display_cli():
                 for key, value in config.items():
                     print(f"{key}: {value}")
                 input("\nEnterキーで戻る...")
-            elif choice == "4":
-                print("\n状態をリセットします...")
-                reset_state()
-                print("リセットが完了しました。")
-                input("\nEnterキーで戻る...")
             else:
                 print("ログを更新しました（無効な選択がログ更新として機能します）")
                 input("\nEnterキーで戻る...")
@@ -774,7 +762,6 @@ if __name__ == "__main__":
         parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
         parser.add_argument("--cli", action="store_true", help="CLIモードで起動（デフォルト）")
         parser.add_argument("--status", action="store_true", help="現在の状態を表示")
-        parser.add_argument("--reset", action="store_true", help="状態をリセット")
         parser.add_argument("--start", action="store_true", help="バックグラウンドで処理を開始")
         args = parser.parse_args()
         
@@ -793,15 +780,8 @@ if __name__ == "__main__":
             
             sys.exit(0)
         
-        # --resetオプションの処理（シンプルなリセット）
-        if args.reset:
-            print("システム状態をリセットします...")
-            reset_state()
-            print("リセットが完了しました。")
-            sys.exit(0)
-        
-        # 起動時にシステム状態をリセット（古いプロセスとフラグを削除）
-        reset_state()
+        # 起動時にシステム状態をリセット（古いプロセス削除）
+        cleanup_old_processes()
         
         # ロギング設定
         setup_logging()
