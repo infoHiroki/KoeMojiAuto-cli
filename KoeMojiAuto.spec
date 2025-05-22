@@ -32,6 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='koemoji-icon.ico',  # プロジェクト直下のアイコンファイルを指定
 )
 coll = COLLECT(
     exe,

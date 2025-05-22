@@ -583,30 +583,7 @@ def start_processing():
     
     return True
 
-def restart_application():
-    """アプリケーションを再起動"""
-    try:
-        log_and_print("アプリケーションを再起動します...", category="システム")
-        
-        # 新しいプロセスを起動
-        script_name = sys.argv[0]
-        cmd = f'start "" "{sys.executable}" "{script_name}"'
-        
-        import subprocess
-        subprocess.Popen(cmd, shell=True)
-        
-        # 少し待ってから古いプロセスを終了（新しいプロセスの起動を待つ）
-        import time
-        time.sleep(1)
-        
-        # 現在のプロセスを終了
-        log_and_print("再起動処理を完了しました", category="システム")
-        sys.exit(0)
-        
-    except Exception as e:
-        log_and_print(f"再起動中にエラーが発生しました: {e}", "error")
-        return False
-    
+
 #=======================================================================
 # CLI インターフェース
 #=======================================================================
@@ -680,13 +657,12 @@ def get_status_display():
 def display_menu():
     """メニューを表示"""
     print("=" * 40)
-    print("              KoeMojiAuto")
+    print("        K O E M O J I - A U T O")
     print("=" * 40)
     print(f"状態: {get_status_display()}")
     print("-" * 40)
     print("  1. 開始      - 文字起こしを開始")
-    print("  2. 再起動    - 処理を再起動")
-    print("  3. 設定表示  - 現在の設定を確認")
+    print("  2. 設定表示  - 現在の設定を確認")
     print("-" * 40)
 
 def display_cli():
@@ -717,17 +693,6 @@ def display_cli():
                         print("処理の開始に失敗しました")
                 input("\nEnterキーで戻る...")
             elif choice == "2":
-                print("\nアプリケーションを再起動しますか？")
-                print("※現在の処理は中断されます")
-                confirm = input("実行する場合は 'y' または 'yes' を入力してください: ")
-                if confirm.lower() in ['y', 'yes']:
-                    restart_application()
-                    # 正常に再起動した場合、ここには到達しない
-                    print("再起動に失敗しました。もう一度お試しください。")
-                else:
-                    print("再起動をキャンセルしました。")
-                input("\nEnterキーで戻る...")
-            elif choice == "3":
                 print("\n--- 設定内容 ---")
                 for key, value in config.items():
                     print(f"{key}: {value}")
