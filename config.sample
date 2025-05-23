@@ -5,6 +5,5 @@
   "archive_folder": "archive",
   "language": "ja",
   "scan_interval_minutes": 30,
-  "max_concurrent_files": 3,
   "max_cpu_percent": 95
 }

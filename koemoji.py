@@ -27,7 +27,6 @@ IS_WINDOWS = platform.system() == 'Windows'
 config = {}
 logger = None
 processing_queue = []
-files_in_process = set()
 whisper_model = None
 model_config = None
 
@@ -45,7 +44,6 @@ DEFAULT_CONFIG = {
     "output_folder": os.path.join(BASE_DIR, "output"), 
     "archive_folder": os.path.join(BASE_DIR, "archive"),
     "scan_interval_minutes": 30,
-    "max_concurrent_files": 3,
     "whisper_model": "large",
     "language": "ja",
     "max_cpu_percent": 95
@@ -389,10 +387,7 @@ def scan_and_queue_files():
         log_and_print(f"キュースキャン中エラー: {e}", "error", category="キュー")
 
 def is_file_queued_or_processing(file_path):
-    """ファイルが既にキューにあるか処理中か確認"""
-    if file_path in files_in_process:
-        return True
-    
+    """ファイルが既にキューにあるか確認"""
     for item in processing_queue:
         if item["path"] == file_path:
             return True
@@ -435,7 +430,7 @@ def wait_for_resources(max_wait_seconds=5):
 
 def process_next_file():
     """キューの次のファイルを処理"""
-    global processing_queue, files_in_process, stop_requested
+    global processing_queue, stop_requested
     
     if stop_requested or not is_running:
         return False
@@ -447,11 +442,6 @@ def process_next_file():
         # リソース使用状況を確認
         if not wait_for_resources():
             return False  # リソース不足またはタイムアウト
-        
-        # 同時処理数を確認
-        max_concurrent = config.get("max_concurrent_files", 3)
-        if len(files_in_process) >= max_concurrent:
-            return False  # 同時処理数の上限
         
         # 次のファイルを取得
         file_info = processing_queue.pop(0)
@@ -467,7 +457,7 @@ def process_next_file():
 
 def process_file(file_path):
     """ファイルを処理する"""
-    global files_in_process, stop_requested
+    global stop_requested
     
     if stop_requested:
         return None
@@ -479,8 +469,6 @@ def process_file(file_path):
             log_and_print(f"ファイルが存在しません: {file_path}", "warning", category="ファイル")
             return None
         
-        # 処理中リストに追加
-        files_in_process.add(file_path)
         file_name = os.path.basename(file_path)
         log_and_print(f"処理開始: {file_name}", category="ファイル", print_console=False)
         
@@ -523,10 +511,8 @@ def process_file(file_path):
     except Exception as e:
         log_and_print(f"エラー発生: {file_path} - {e}", "error", category="ファイル")
         return None
-    finally:
-        # 処理中リストから削除
-        if file_path in files_in_process:
-            files_in_process.remove(file_path)#=======================================================================
+
+#=======================================================================
 # メイン処理ループとスレッド管理
 #=======================================================================
 
