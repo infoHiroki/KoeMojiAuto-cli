@@ -701,65 +701,83 @@ def display_cli():
 # メイン実行部分
 #=======================================================================
 
-if __name__ == "__main__":
+def main_cli_entry(argv=None):
+    """CLIのメインエントリーポイント"""
+    global is_running, stop_requested # Declare upfront that these are global
+
+    if argv is None:
+        argv = sys.argv[1:]
+
     try:
-        # コマンドライン引数の解析（KISS原則: 最小限から開始）
         parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
         parser.add_argument("--cli", action="store_true", help="CLIモードで起動（デフォルト）")
         parser.add_argument("--status", action="store_true", help="現在の状態を表示")
         parser.add_argument("--start", action="store_true", help="バックグラウンドで処理を開始")
-        args = parser.parse_args()
+        args = parser.parse_args(argv)
         
         # --statusオプションの処理（読み取り専用、安全）
         if args.status:
+            # print はテストで mock される想定
             print("KoeMojiAuto ステータス")
             print("=" * 30)
-            
-            # プロセス状態の確認（シンプル化）
-            print("状態: 停止中")
+            print("状態: 停止中") # is_running の状態を見るように変更も可能だが、現状維持
             
             # 設定確認（setup_logging/load_configの前でも安全な表示）
-            print(f"設定ファイル: {'存在' if os.path.exists('config.json') else '未作成'}")
-            print(f"入力フォルダ: {'存在' if os.path.exists('input') else '未作成'}")
-            print(f"出力フォルダ: {'存在' if os.path.exists('output') else '未作成'}")
+            # BASE_DIR を使って config.json のパスを決定する
+            config_file_default_path = os.path.join(BASE_DIR, "config.json")
+            input_folder_default_path = os.path.join(BASE_DIR, "input") # デフォルトの input パス
+            output_folder_default_path = os.path.join(BASE_DIR, "output") # デフォルトの output パス
+
+            print(f"設定ファイル: {'存在' if os.path.exists(config_file_default_path) else '未作成'}")
+            print(f"入力フォルダ: {'存在' if os.path.exists(input_folder_default_path) else '未作成'}")
+            print(f"出力フォルダ: {'存在' if os.path.exists(output_folder_default_path) else '未作成'}")
             
-            sys.exit(0)
+            sys.exit(0) # sys.exit もテストで mock される想定
         
         # ロギング設定
-        setup_logging()
+        setup_logging() # mock される想定
         
         # 設定を読み込む
-        load_config()
+        load_config() # mock される想定
         
         # --startオプションの処理（設定読み込み後）
         if args.start:
-            print("バックグラウンドで文字起こし処理を開始します...")
-            if start_processing():
-                print("処理を開始しました。")
-                print("停止する場合は: Ctrl+C または ×ボタン")
+            print("バックグラウンドで文字起こし処理を開始します...") # mock される想定
+            if start_processing(): # mock される想定
+                print("処理を開始しました。") # mock される想定
+                print("停止する場合は: Ctrl+C または ×ボタン") # mock される想定
                 
                 # バックグラウンド実行：メインプロセスを継続
                 try:
-                    while is_running and not stop_requested:
-                        time.sleep(1)
-                except KeyboardInterrupt:
+                    # is_running と stop_requested はテストで制御される想定
+                    while is_running and not stop_requested: 
+                        time.sleep(1) # time.sleep もテストで mock される想定
+                except KeyboardInterrupt: # 通常のテストでは発生させない
                     print("\nCtrl+Cで停止しました。")
                 finally:
                     # 終了時のクリーンアップ
+                    # これらのグローバル変数の変更もテストで確認可能
+                    # global statement is now at the function top
                     stop_requested = True
                     is_running = False
-                sys.exit(0)
+                sys.exit(0) # mock される想定
             else:
-                print("処理の開始に失敗しました。")
-                sys.exit(1)
+                print("処理の開始に失敗しました。") # mock される想定
+                sys.exit(1) # mock される想定
         
         # 実行モード分岐（現時点ではCLIのみ）
-        if args.cli or len(sys.argv) == 1:  # 引数なしの場合もCLI
-            display_cli()
+        # len(sys.argv) == 1 の代わりに len(argv) == 0 を使用 (sys.argv[0] は含まれないため)
+        if args.cli or len(argv) == 0: 
+            display_cli() # mock される想定
         else:
             # 将来の拡張用（現時点ではCLIと同じ）
-            display_cli()
+            display_cli() # mock される想定
         
-    except Exception as e:
-        print(f"予期せぬエラーが発生しました: {e}")
-        input("\nEnterキーで終了...")
+    except Exception as e: # SystemExit は Exception のサブクラスなので、モックしないとテストが終了してしまう
+        # この print もテストで確認可能
+        print(f"予期せぬエラーが発生しました: {e}") 
+        # input() はテストで問題になる可能性があるので、本番以外では実行しない方が良いかもしれない
+        # input("\nEnterキーで終了...") 
+
+if __name__ == "__main__":
+    main_cli_entry()

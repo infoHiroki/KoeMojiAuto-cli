@@ -15,7 +15,8 @@ import koemoji
 from koemoji import (
     load_config, save_config, validate_config, 
     DEFAULT_CONFIG, config as koemoji_config, # Import and alias to avoid clash
-    log_and_print, setup_logging, BASE_DIR as KOEMOJI_BASE_DIR
+    log_and_print, setup_logging, BASE_DIR as KOEMOJI_BASE_DIR,
+    get_status_display, clear_screen, display_cli # display_cli already added
 )
 
 
@@ -1021,6 +1022,278 @@ class TestKoeMojiIntegration(unittest.TestCase):
             for call in log_calls
         )
         self.assertTrue(found_archived, f"Log message for 'アーカイブ' not found or incorrect. Searched for: '{expected_log_archived}' with category 'ファイル'")
+
+
+import builtins # For mocking print
+
+class TestKoeMojiCLIArgs(unittest.TestCase):
+    def setUp(self):
+        # Store original states
+        self.original_is_running = koemoji.is_running
+        self.original_stop_requested = koemoji.stop_requested
+        koemoji.is_running = False # Default for tests
+        koemoji.stop_requested = False # Default for tests
+
+        # Patch dependencies
+        self.mock_load_config_patcher = patch('koemoji.load_config')
+        self.mock_load_config = self.mock_load_config_patcher.start()
+        self.addCleanup(self.mock_load_config_patcher.stop)
+
+        self.mock_setup_logging_patcher = patch('koemoji.setup_logging')
+        self.mock_setup_logging = self.mock_setup_logging_patcher.start()
+        self.addCleanup(self.mock_setup_logging_patcher.stop)
+
+        self.mock_display_cli_patcher = patch('koemoji.display_cli')
+        self.mock_display_cli = self.mock_display_cli_patcher.start()
+        self.addCleanup(self.mock_display_cli_patcher.stop)
+
+        self.mock_start_processing_patcher = patch('koemoji.start_processing')
+        self.mock_start_processing = self.mock_start_processing_patcher.start()
+        self.addCleanup(self.mock_start_processing_patcher.stop)
+
+        self.mock_sys_exit_patcher = patch('sys.exit')
+        self.mock_sys_exit = self.mock_sys_exit_patcher.start()
+        self.addCleanup(self.mock_sys_exit_patcher.stop)
+
+        self.mock_builtin_print_patcher = patch('builtins.print')
+        self.mock_builtin_print = self.mock_builtin_print_patcher.start()
+        self.addCleanup(self.mock_builtin_print_patcher.stop)
+
+        self.mock_time_sleep_patcher = patch('time.sleep')
+        self.mock_time_sleep = self.mock_time_sleep_patcher.start()
+        self.addCleanup(self.mock_time_sleep_patcher.stop)
+        
+        # This is needed because main_cli_entry modifies these globals
+        # Patching them ensures that test runs don't affect each other through shared global state
+        self.patch_koemoji_is_running = patch('koemoji.is_running', False) # Start with False
+        self.mock_koemoji_is_running = self.patch_koemoji_is_running.start()
+        self.addCleanup(self.patch_koemoji_is_running.stop)
+
+        self.patch_koemoji_stop_requested = patch('koemoji.stop_requested', False) # Start with False
+        self.mock_koemoji_stop_requested = self.patch_koemoji_stop_requested.start()
+        self.addCleanup(self.patch_koemoji_stop_requested.stop)
+
+
+    def tearDown(self):
+        # Restore original states
+        koemoji.is_running = self.original_is_running
+        koemoji.stop_requested = self.original_stop_requested
+        # Patchers are stopped by addCleanup
+
+    def _mock_sys_exit_effect(self, exit_code=None):
+        """Custom side effect to simulate sys.exit behavior and capture exit code."""
+        # If sys.exit() is called with no args (implicit exit code 0), SystemExit.code is None.
+        # If sys.exit(0), SystemExit.code is 0.
+        # If sys.exit(non_zero), SystemExit.code is non_zero.
+        # To make our tests consistent, we'll ensure SystemExit always has a code.
+        raise SystemExit(exit_code if exit_code is not None else 0)
+
+    def test_main_cli_status_arg(self):
+        self.mock_sys_exit.side_effect = self._mock_sys_exit_effect
+
+        with self.assertRaises(SystemExit) as cm:
+            koemoji.main_cli_entry(['--status'])
+        
+        self.assertEqual(cm.exception.code, 0) 
+        self.mock_builtin_print.assert_any_call("KoeMojiAuto ステータス")
+        self.mock_sys_exit.assert_called_once_with(0)
+        self.mock_load_config.assert_not_called()
+        self.mock_setup_logging.assert_not_called()
+
+    def test_main_cli_start_arg_success(self):
+        self.mock_sys_exit.side_effect = self._mock_sys_exit_effect
+        
+        # Define side effect for the mocked start_processing
+        def start_processing_sets_running_true_effect():
+            koemoji.is_running = True # Simulate real function's behavior on the global
+            koemoji.stop_requested = False # Simulate real function's behavior on the global
+            return True # The return value of the mock
+        self.mock_start_processing.side_effect = start_processing_sets_running_true_effect
+
+        # This side effect for time.sleep will stop the loop
+        sleep_call_count = 0
+        def sleep_side_effect_for_success(*args, **kwargs):
+            nonlocal sleep_call_count
+            sleep_call_count += 1
+            if sleep_call_count >= 1: # Let it sleep at least once to confirm loop entry
+                koemoji.stop_requested = True # Modify the actual global to stop the loop
+        self.mock_time_sleep.side_effect = sleep_side_effect_for_success
+        
+        with self.assertRaises(SystemExit) as cm:
+            koemoji.main_cli_entry(['--start'])
+        
+        self.assertEqual(cm.exception.code, 0) # Should exit with 0 after loop finishes
+        self.mock_load_config.assert_called_once()
+        self.mock_setup_logging.assert_called_once()
+        self.mock_start_processing.assert_called_once()
+        self.mock_builtin_print.assert_any_call("処理を開始しました。")
+        self.assertTrue(self.mock_time_sleep.called)
+        self.mock_sys_exit.assert_called_once_with(0)
+
+
+    def test_main_cli_start_arg_failure(self):
+        self.mock_sys_exit.side_effect = self._mock_sys_exit_effect
+        self.mock_start_processing.return_value = False # Simulate failed start
+        
+        with self.assertRaises(SystemExit) as cm:
+            koemoji.main_cli_entry(['--start'])
+        self.assertEqual(cm.exception.code, 1)
+
+        self.mock_load_config.assert_called_once()
+        self.mock_setup_logging.assert_called_once()
+        self.mock_start_processing.assert_called_once()
+        self.mock_builtin_print.assert_any_call("処理の開始に失敗しました。")
+        self.mock_sys_exit.assert_called_once_with(1)
+
+    def test_main_cli_default_or_cli_arg(self):
+        # For these, display_cli() is called, which might not call sys.exit.
+        # So, we don't necessarily expect SystemExit here unless display_cli itself exits.
+        # Assuming display_cli runs and then the function ends normally for these test paths.
+        
+        # Test with no args (default to CLI)
+        koemoji.main_cli_entry([])
+        self.mock_load_config.assert_called_once()
+        self.mock_setup_logging.assert_called_once()
+        self.mock_display_cli.assert_called_once()
+
+        # Reset mocks for the next call
+        self.mock_load_config.reset_mock()
+        self.mock_setup_logging.reset_mock()
+        self.mock_display_cli.reset_mock()
+
+        # Test with --cli arg
+        koemoji.main_cli_entry(['--cli'])
+        self.mock_load_config.assert_called_once()
+        self.mock_setup_logging.assert_called_once()
+        self.mock_display_cli.assert_called_once()
+
+
+# Custom Exception for Loop Control in display_cli tests
+class StopCLI अत्यधिकLoop(Exception): 
+    pass
+
+# display_cli is imported at the top koemoji import block
+
+class TestKoeMojiCLIHelpers(unittest.TestCase):
+    # Tests for get_status_display()
+    def test_get_status_display_running(self):
+        with patch('koemoji.is_running', True):
+            status_string = get_status_display()
+        self.assertEqual(status_string, "● 実行中")
+
+    def test_get_status_display_stopped(self):
+        with patch('koemoji.is_running', False):
+            status_string = get_status_display()
+        self.assertEqual(status_string, "○ 停止中")
+
+    # Tests for clear_screen()
+    def test_clear_screen_windows(self):
+        with patch('koemoji.IS_WINDOWS', True), \
+             patch('os.system') as mock_os_system:
+            clear_screen()
+            mock_os_system.assert_any_call('cls')
+            mock_os_system.assert_any_call('title KoeMoji')
+            # Ensure only these two calls were made if desired, by checking call_count
+            self.assertEqual(mock_os_system.call_count, 2)
+
+
+    def test_clear_screen_other_os(self):
+        with patch('koemoji.IS_WINDOWS', False), \
+             patch('os.system') as mock_os_system, \
+             patch('builtins.print') as mock_builtin_print:
+            clear_screen()
+            mock_os_system.assert_called_once_with('clear')
+            mock_builtin_print.assert_called_once_with("\033]0;KoeMoji\007", end="")
+
+
+class TestKoeMojiInteractiveCLI(unittest.TestCase):
+    def setUp(self):
+        # Store original states
+        self.original_is_running = koemoji.is_running
+        self.original_config = koemoji.config.copy() 
+        koemoji.is_running = False # Default for tests
+
+        self.test_config_dict = {"sample_key": "sample_value", "another_key": "another_value"}
+        koemoji.config = self.test_config_dict 
+
+        # Patch dependencies
+        self.mock_clear_screen_patcher = patch('koemoji.clear_screen')
+        self.mock_clear_screen = self.mock_clear_screen_patcher.start()
+        self.addCleanup(self.mock_clear_screen_patcher.stop)
+
+        self.mock_display_menu_patcher = patch('koemoji.display_menu')
+        self.mock_display_menu = self.mock_display_menu_patcher.start()
+        self.addCleanup(self.mock_display_menu_patcher.stop)
+
+        self.mock_show_recent_logs_patcher = patch('koemoji.show_recent_logs')
+        self.mock_show_recent_logs = self.mock_show_recent_logs_patcher.start()
+        self.addCleanup(self.mock_show_recent_logs_patcher.stop)
+
+        self.mock_start_processing_patcher = patch('koemoji.start_processing')
+        self.mock_start_processing = self.mock_start_processing_patcher.start()
+        self.addCleanup(self.mock_start_processing_patcher.stop)
+
+        self.mock_builtin_print_patcher = patch('builtins.print')
+        self.mock_print = self.mock_builtin_print_patcher.start()
+        self.addCleanup(self.mock_builtin_print_patcher.stop)
+
+        self.mock_builtin_input_patcher = patch('builtins.input')
+        self.mock_input = self.mock_builtin_input_patcher.start()
+        self.addCleanup(self.mock_builtin_input_patcher.stop)
+
+    def tearDown(self):
+        koemoji.is_running = self.original_is_running
+        koemoji.config = self.original_config
+
+    def common_loop_assertions(self):
+        # Called twice: once for the action, once before StopCLI अत्यधिकLoop
+        self.assertEqual(self.mock_clear_screen.call_count, 2)
+        self.assertEqual(self.mock_display_menu.call_count, 2)
+        self.assertEqual(self.mock_show_recent_logs.call_count, 2)
+
+    def test_cli_menu_choice_1_start_processing_when_stopped(self):
+        koemoji.is_running = False
+        self.mock_input.side_effect = ['1', '', StopCLI अत्यधिकLoop()] 
+        self.mock_start_processing.return_value = True
+        
+        with self.assertRaises(StopCLI अत्यधिकLoop):
+            koemoji.display_cli() # Call the function from koemoji module
+            
+        self.mock_start_processing.assert_called_once()
+        self.mock_print.assert_any_call("処理を開始しました")
+        self.common_loop_assertions()
+
+
+    def test_cli_menu_choice_1_already_running(self):
+        koemoji.is_running = True
+        self.mock_input.side_effect = ['1', '', StopCLI अत्यधिकLoop()]
+        
+        with self.assertRaises(StopCLI अत्यधिकLoop):
+            display_cli()
+            
+        self.mock_start_processing.assert_not_called()
+        self.mock_print.assert_any_call("すでに実行中です")
+        self.common_loop_assertions()
+
+    def test_cli_menu_choice_2_show_settings(self):
+        self.mock_input.side_effect = ['2', '', StopCLI अत्यधिकLoop()]
+        
+        with self.assertRaises(StopCLI अत्यधिकLoop):
+            display_cli()
+            
+        self.mock_print.assert_any_call("\n--- 設定内容 ---") # display_cli adds newline
+        for key, value in self.test_config_dict.items():
+            self.mock_print.assert_any_call(f"{key}: {value}")
+        self.common_loop_assertions()
+
+    def test_cli_menu_invalid_choice_refreshes_logs(self):
+        self.mock_input.side_effect = ['invalid_choice', '', StopCLI अत्यधिकLoop()]
+        
+        with self.assertRaises(StopCLI अत्यधिकLoop):
+            display_cli()
+            
+        self.mock_print.assert_any_call("ログを更新しました（無効な選択がログ更新として機能します）")
+        self.common_loop_assertions()
 
 
 if __name__ == '__main__':
