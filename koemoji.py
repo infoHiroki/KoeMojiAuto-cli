@@ -12,11 +12,8 @@ import time
 import json
 import logging
 import shutil
-import argparse
 import threading
 import platform
-import atexit
-import signal
 import psutil
 from pathlib import Path
 
@@ -48,39 +45,6 @@ DEFAULT_CONFIG = {
     "language": "ja",
     "max_cpu_percent": 95
 }
-
-#=======================================================================
-# 初期化とクリーンアップ
-#=======================================================================
-
-def cleanup_on_exit():
-    """終了時のクリーンアップ処理"""
-    global stop_requested, is_running
-    
-    # 停止要求フラグを立てる
-    stop_requested = True
-    is_running = False
-        
-    # 処理スレッドが動いていれば最大10秒待つ
-    if processing_thread and processing_thread.is_alive():
-        processing_thread.join(timeout=10)
-    
-    if logger:
-        logger.info("KoeMojiAutoを終了しました")
-
-
-
-# 終了時の処理を登録
-atexit.register(cleanup_on_exit)
-
-# シグナルハンドラ設定
-def signal_handler(sig, frame):
-    """シグナル受信時の処理"""
-    cleanup_on_exit()
-    sys.exit(0)
-
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
 
 #=======================================================================
 # ロギング・ユーティリティ関数
@@ -695,62 +659,14 @@ def display_cli():
 
 if __name__ == "__main__":
     try:
-        # コマンドライン引数の解析（KISS原則: 最小限から開始）
-        parser = argparse.ArgumentParser(description="KoeMojiAuto文字起こしツール")
-        parser.add_argument("--cli", action="store_true", help="CLIモードで起動（デフォルト）")
-        parser.add_argument("--status", action="store_true", help="現在の状態を表示")
-        parser.add_argument("--start", action="store_true", help="バックグラウンドで処理を開始")
-        args = parser.parse_args()
-        
-        # --statusオプションの処理（読み取り専用、安全）
-        if args.status:
-            print("KoeMojiAuto ステータス")
-            print("=" * 30)
-            
-            # プロセス状態の確認（シンプル化）
-            print("状態: 停止中")
-            
-            # 設定確認（setup_logging/load_configの前でも安全な表示）
-            print(f"設定ファイル: {'存在' if os.path.exists('config.json') else '未作成'}")
-            print(f"入力フォルダ: {'存在' if os.path.exists('input') else '未作成'}")
-            print(f"出力フォルダ: {'存在' if os.path.exists('output') else '未作成'}")
-            
-            sys.exit(0)
-        
         # ロギング設定
         setup_logging()
         
         # 設定を読み込む
         load_config()
         
-        # --startオプションの処理（設定読み込み後）
-        if args.start:
-            print("バックグラウンドで文字起こし処理を開始します...")
-            if start_processing():
-                print("処理を開始しました。")
-                print("停止する場合は: Ctrl+C または ×ボタン")
-                
-                # バックグラウンド実行：メインプロセスを継続
-                try:
-                    while is_running and not stop_requested:
-                        time.sleep(1)
-                except KeyboardInterrupt:
-                    print("\nCtrl+Cで停止しました。")
-                finally:
-                    # 終了時のクリーンアップ
-                    stop_requested = True
-                    is_running = False
-                sys.exit(0)
-            else:
-                print("処理の開始に失敗しました。")
-                sys.exit(1)
-        
-        # 実行モード分岐（現時点ではCLIのみ）
-        if args.cli or len(sys.argv) == 1:  # 引数なしの場合もCLI
-            display_cli()
-        else:
-            # 将来の拡張用（現時点ではCLIと同じ）
-            display_cli()
+        # CLIを起動
+        display_cli()
         
     except Exception as e:
         print(f"予期せぬエラーが発生しました: {e}")
