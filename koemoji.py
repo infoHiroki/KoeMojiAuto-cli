@@ -48,7 +48,6 @@ DEFAULT_CONFIG = {
     "max_concurrent_files": 3,
     "whisper_model": "large",
     "language": "ja",
-    "compute_type": "int8",
     "max_cpu_percent": 95
 }
 
@@ -258,9 +257,9 @@ def transcribe_audio(file_path):
         return None
     
     try:
-        # モデルサイズとコンピュートタイプを設定
+        # モデルサイズを設定
         model_size = config.get("whisper_model", "large")
-        compute_type = config.get("compute_type", "int8")
+        compute_type = config.get("compute_type", None)  # 設定がない場合は自動検出
         
         # モデルが未ロードか設定が変わった場合のみ再ロード
         if (whisper_model is None or 
@@ -271,7 +270,14 @@ def transcribe_audio(file_path):
                 return None
                 
             log_and_print(f"モデルロード: Whisper {model_size}", category="モデル", print_console=False)
-            whisper_model = WhisperModel(model_size, compute_type=compute_type)
+            
+            # compute_typeが指定されている場合とされていない場合で分岐
+            if compute_type:
+                whisper_model = WhisperModel(model_size, compute_type=compute_type)
+            else:
+                # 自動検出に任せる
+                whisper_model = WhisperModel(model_size)
+            
             model_config = (model_size, compute_type)
             
             # モデルロード後にも停止要求をチェック

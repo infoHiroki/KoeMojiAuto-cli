@@ -93,7 +93,6 @@
 ### その他の設定
 - `max_concurrent_files`: 同時処理ファイル数（デフォルト3）
 - `max_cpu_percent`: CPU使用率の上限（デフォルト95%）
-- `compute_type`: 処理精度（"int8"がデフォルト）
 
 ## 🔧 トラブルシューティング
 
