@@ -134,7 +134,7 @@ def load_config(config_path="config.json"):
         if not os.path.exists(config_path):
             # 初回使用時：デフォルト値を設定
             log_and_print("設定ファイルが見つからないため、デフォルト設定を使用します。")
-            config = DEFAULT_CONFIG.copy().copy()
+            config = DEFAULT_CONFIG.copy()
             save_config(config_path)
         else:
             # 設定読み込み
@@ -152,7 +152,7 @@ def load_config(config_path="config.json"):
                     save_config(config_path)
                 except:
                     log_and_print("設定ファイルを読み込めませんでした。デフォルト設定を使用します。", "error")
-                    config = DEFAULT_CONFIG.copy().copy()
+                    config = DEFAULT_CONFIG.copy()
                     save_config(config_path)
             
             # 設定値の検証
@@ -166,7 +166,7 @@ def load_config(config_path="config.json"):
                 
     except Exception as e:
         log_and_print(f"設定の読み込み中にエラーが発生しました: {e}", "error")
-        config = DEFAULT_CONFIG.copy().copy()
+        config = DEFAULT_CONFIG.copy()
 
 def validate_config():
     """設定値の妥当性をチェック"""
@@ -221,11 +221,10 @@ def transcribe_audio(file_path):
     try:
         # モデルサイズを設定
         model_size = config.get("whisper_model", "large")
-        compute_type = config.get("compute_type", None)  # 設定がない場合は自動検出
         
         # モデルが未ロードか設定が変わった場合のみ再ロード
         if (whisper_model is None or 
-            model_config != (model_size, compute_type)):
+            model_config != model_size):
             # モデルロード前に再度停止要求をチェック
             if stop_requested:
                 log_and_print("モデルロードをキャンセル（停止要求）", category="モデル", print_console=False)
@@ -233,14 +232,10 @@ def transcribe_audio(file_path):
                 
             log_and_print(f"モデルロード: Whisper {model_size}", category="モデル", print_console=False)
             
-            # compute_typeが指定されている場合とされていない場合で分岐
-            if compute_type:
-                whisper_model = WhisperModel(model_size, compute_type=compute_type)
-            else:
-                # 自動検出に任せる
-                whisper_model = WhisperModel(model_size)
+            # モデルをロード
+            whisper_model = WhisperModel(model_size)
             
-            model_config = (model_size, compute_type)
+            model_config = model_size
             
             # モデルロード後にも停止要求をチェック
             if stop_requested:
