@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ダウンロード - KoeMojiAuto</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .nav {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+        
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .download-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .download-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .download-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .version-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .requirements {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .requirements h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .requirements ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .requirements li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .requirements li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .installation-steps {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        code {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .note strong {
+            color: #856404;
+        }
+        
+        .footer {
+            background: #282c34;
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 60px;
+        }
+        
+        .footer a {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📥 ダウンロード</h1>
+        <p>KoeMojiAutoを今すぐ始めよう</p>
+        
+        <div class="nav">
+            <a href="index.html">ホーム</a>
+            <a href="guide.html">使い方</a>
+            <a href="download.html">ダウンロード</a>
+            <a href="faq.html">FAQ</a>
+            <a href="architecture.html">技術詳細</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ダウンロードセクション -->
+        <div class="download-section">
+            <h2>🚀 最新版をダウンロード</h2>
+            
+            <div class="version-info">
+                <strong>最新バージョン:</strong> v1.0.0<br>
+                <strong>リリース日:</strong> 2025年5月<br>
+                <strong>ファイルサイズ:</strong> 約 50MB（ZIP形式）
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://github.com/infoHiroki/KoeMojiAuto-cli/releases" class="download-button">
+                    GitHubからダウンロード
+                </a>
+            </div>
+            
+            <p style="text-align: center; color: #666; margin-top: 10px;">
+                ※ GitHubのリリースページに移動します
+            </p>
+        </div>
+
+        <!-- システム要件 -->
+        <div class="download-section">
+            <h2>💻 システム要件</h2>
+            
+            <div class="requirements">
+                <h3>必須要件</h3>
+                <ul>
+                    <li>Windows 10/11（64ビット版）</li>
+                    <li>Python 3.8以上</li>
+                    <li>8GB以上のRAM（16GB推奨）</li>
+                    <li>10GB以上の空きディスク容量</li>
+                    <li>インターネット接続（初回モデルダウンロード時）</li>
+                </ul>
+            </div>
+            
+            <div class="requirements">
+                <h3>推奨スペック</h3>
+                <ul>
+                    <li>Intel Core i5以上 または AMD Ryzen 5以上</li>
+                    <li>16GB以上のRAM</li>
+                    <li>SSD（高速処理のため）</li>
+                    <li>NVIDIA GPU（オプション：CUDA対応で高速化）</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- インストール手順 -->
+        <div class="installation-steps">
+            <h2>📝 インストール手順</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>ダウンロード</h4>
+                    <p>上記のボタンからGitHubのリリースページにアクセスし、最新版のZIPファイルをダウンロードします。</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>解凍</h4>
+                    <p>ダウンロードしたZIPファイルを任意の場所に解凍します。日本語パスでも問題ありません。</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>インストール実行</h4>
+                    <p>解凍したフォルダ内の <code>install.bat</code> をダブルクリックして実行します。必要なライブラリが自動的にインストールされます。</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>初回起動</h4>
+                    <p><code>install.bat</code> の実行後、デスクトップに作成されたショートカットから起動できます。初回起動時は音声認識モデルのダウンロードに時間がかかる場合があります。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 注意事項 -->
+        <div class="note">
+            <strong>⚠️ 注意事項</strong>
+            <ul style="margin-top: 10px; padding-left: 20px;">
+                <li>初回起動時、Whisperモデル（約1.5GB）の自動ダウンロードが行われます</li>
+                <li>ウイルス対策ソフトが警告を表示する場合がありますが、問題ありません</li>
+                <li>管理者権限は不要です</li>
+            </ul>
+        </div>
+
+        <!-- その他のダウンロード -->
+        <div class="download-section">
+            <h2>📦 その他のダウンロード</h2>
+            
+            <h3 style="color: #667eea; margin-top: 20px;">開発者向け</h3>
+            <p>ソースコードから実行する場合：</p>
+            <div style="background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                <code style="background: none; color: inherit;">
+                    git clone https://github.com/infoHiroki/KoeMojiAuto-cli.git<br>
+                    cd KoeMojiAuto-cli<br>
+                    pip install -r requirements.txt<br>
+                    python koemoji_auto.py
+                </code>
+            </div>
+            
+            <h3 style="color: #667eea; margin-top: 30px;">過去のバージョン</h3>
+            <p>過去のバージョンが必要な場合は、<a href="https://github.com/infoHiroki/KoeMojiAuto-cli/releases" style="color: #667eea;">GitHubのリリースページ</a>からダウンロードできます。</p>
+        </div>
+
+        <!-- ライセンス -->
+        <div class="download-section">
+            <h2>📜 ライセンス</h2>
+            <p><strong>個人利用・教育研究目的：</strong> 無料でご利用いただけます</p>
+            <p><strong>商用利用：</strong> 事前にご連絡ください → <a href="mailto:info.hirokitakamura@gmail.com" style="color: #667eea;">info.hirokitakamura@gmail.com</a></p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 Hiroki Takamura</p>
+        <p>問題が発生した場合は <a href="faq.html">FAQ</a> をご確認ください</p>
+    </footer>
+</body>
+</html>

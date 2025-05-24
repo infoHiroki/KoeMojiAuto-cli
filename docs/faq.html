@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>よくある質問 - KoeMojiAuto</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .nav {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .nav a:hover {
+            color: #764ba2;
+        }        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .faq-category {
+            margin-bottom: 50px;
+        }
+        
+        .faq-category h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        
+        .faq-item {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .question {
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .answer {
+            color: #666;
+        }
+        
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head><body>
+    <div class="header">
+        <h1>よくある質問</h1>
+        <p>KoeMojiAutoについてのFAQ</p>
+    </div>
+    
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="index.html">トップ</a>
+            <a href="guide.html">使い方</a>
+            <a href="faq.html" style="color: #764ba2;">FAQ</a>
+            <a href="https://github.com/infoHiroki/KoeMojiAuto-cli">GitHub</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="faq-category">
+            <h2>🔧 インストール・設定</h2>
+            
+            <div class="faq-item">
+                <div class="question">Q: Pythonが見つからないと表示される</div>
+                <div class="answer">
+                    A: Pythonがインストールされていないか、PATHに追加されていません。<br>
+                    Python公式サイトから最新版をダウンロードし、インストール時に「Add Python to PATH」にチェックを入れてください。
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: install.batが失敗する</div>
+                <div class="answer">
+                    A: 管理者権限で実行するか、手動でインストールしてください：
+                    <div class="code-block">pip install -r requirements.txt</div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: 初回起動が終わらない</div>
+                <div class="answer">
+                    A: AIモデル（約3GB）のダウンロード中です。インターネット速度により10-30分かかります。
+                </div>
+            </div>
+        </div>        
+        <div class="faq-category">
+            <h2>🎯 使い方・処理</h2>
+            
+            <div class="faq-item">
+                <div class="question">Q: ファイルが処理されない</div>
+                <div class="answer">
+                    A: 以下を確認してください：<br>
+                    • 対応形式か（MP3, WAV, M4A等）<br>
+                    • メニューで「1」を押したか<br>
+                    • <code>input/</code>フォルダにファイルがあるか
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: 処理が遅い</div>
+                <div class="answer">
+                    A: <code>config.json</code>で以下を調整してください：<br>
+                    • <code>"whisper_model": "small"</code> に変更（精度は低下）<br>
+                    • <code>"compute_type": "int8"</code> を確認（CPU環境）
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: 文字化けする</div>
+                <div class="answer">
+                    A: 出力ファイルはUTF-8形式です。メモ帳ではなく、VSCodeやサクラエディタなどUTF-8対応のエディタで開いてください。
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: 処理中にPCが重い</div>
+                <div class="answer">
+                    A: <code>config.json</code>の<code>"max_cpu_percent"</code>を50-70に下げてください。処理は遅くなりますが、他の作業と並行できます。
+                </div>
+            </div>
+        </div>        
+        <div class="faq-category">
+            <h2>💡 その他</h2>
+            
+            <div class="faq-item">
+                <div class="question">Q: GPUは使えますか？</div>
+                <div class="answer">
+                    A: はい。NVIDIA GPU搭載PCでは<code>config.json</code>の<code>"compute_type": "auto"</code>に変更すると自動でGPUが使用されます。
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: 英語の音声も処理できますか？</div>
+                <div class="answer">
+                    A: はい。<code>config.json</code>の<code>"language": "en"</code>に変更してください。
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: ログファイルが大きくなった</div>
+                <div class="answer">
+                    A: <code>koemoji.log</code>は削除しても問題ありません。自動的に再作成されます。
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="question">Q: 商用利用はできますか？</div>
+                <div class="answer">
+                    A: 商用利用には事前許可が必要です。<a href="mailto:info.hirokitakamura@gmail.com">info.hirokitakamura@gmail.com</a>までご連絡ください。
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

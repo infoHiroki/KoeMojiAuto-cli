@@ -235,7 +235,7 @@
                 </div>
                 <div class="tech-item">
                     <h4>🎧 faster-whisper</h4>
-                    <p>OpenAI Whisperの高速実装。音声認識のコアエンジン</p>
+                    <p>OpenAI Whisperの高速実装。音声認識のコアエンジン（INT8量子化対応）</p>
                 </div>
                 <div class="tech-item">
                     <h4>⚡ psutil</h4>
@@ -266,7 +266,7 @@
                 </div>
                 <div class="flow-step" onclick="showDetail('whisper')">
                     🤖 Whisper エンジン<br>
-                    <small>音声認識処理</small>
+                    <small>音声認識処理（INT8/FP16）</small>
                 </div>
                 <div class="flow-step" onclick="showDetail('output')">
                     📄 OUTPUT フォルダ<br>
@@ -333,6 +333,35 @@
             </div>
         </div>
 
+        <!-- 設定ファイル詳細 -->
+        <div class="component-details">
+            <h2>⚙️ 設定ファイル（config.json）</h2>
+            <div class="code-example">
+{
+    "input_folder": "input",
+    "output_folder": "output",
+    "archive_folder": "archive",
+    "whisper_model": "large",
+    "compute_type": "int8",      // int8（高速）またはfp16（高精度）
+    "language": "ja",
+    "max_concurrent_files": 3,
+    "max_cpu_percent": 95,
+    "scan_interval": 30          // 分単位
+}</div>
+            <div class="tech-grid" style="margin-top: 20px;">
+                <div class="tech-item">
+                    <h4>compute_type設定</h4>
+                    <p><strong>int8:</strong> CPU処理に最適化、メモリ効率的<br>
+                    <strong>fp16:</strong> より高精度、GPU使用時推奨</p>
+                </div>
+                <div class="tech-item">
+                    <h4>whisper_model設定</h4>
+                    <p><strong>large:</strong> 最高精度（推奨）<br>
+                    <strong>medium/small:</strong> 高速処理優先時</p>
+                </div>
+            </div>
+        </div>
+
         <!-- 設計パターン -->
         <div class="component-details">
             <h2>🎯 採用された設計パターン</h2>
@@ -347,7 +376,7 @@
                 </div>
                 <div class="tech-item">
                     <h4>🎛️ Strategy パターン</h4>
-                    <p>設定ファイルによる動作カスタマイズ</p>
+                    <p>設定ファイルによる動作カスタマイズ（compute_type、モデルサイズ等）</p>
                 </div>
                 <div class="tech-item">
                     <h4>🔒 Singleton パターン</h4>
@@ -437,7 +466,8 @@ segments, info = model.transcribe(
 )</div>
                         <p><strong>最適化:</strong></p>
                         <ul>
-                            <li>量子化（int8）によるメモリ効率化</li>
+                            <li>量子化（INT8/FP16）によるメモリ効率化</li>
+                            <li>config.jsonでcompute_type設定可能</li>
                             <li>モデル再利用でロード時間短縮</li>
                             <li>VADフィルタで精度向上</li>
                         </ul>
@@ -584,7 +614,7 @@ def transcribe_audio(file_path):
                         <p><strong>最適化技術:</strong></p>
                         <ul>
                             <li>モデル再利用でメモリ効率化</li>
-                            <li>int8量子化で高速化</li>
+                            <li>INT8/FP16量子化で高速化（config.jsonで選択可能）</li>
                             <li>VADフィルタで精度向上</li>
                         </ul>
                     `
