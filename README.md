@@ -147,7 +147,7 @@ pip install -r requirements.txt
 A: `config.json`の`max_cpu_percent`を50-70に下げてください。処理は遅くなりますが、他の作業と並行できます。
 
 **Q: 文字起こしの精度を上げたい**  
-A: `whisper_model`を`large`に変更してください。ただし処理時間は約5倍になります。
+A: `whisper_model`はデフォルトで`large`になっていて、最も精度が高いモデルに設定されています。
 
 **Q: 英語の音声も文字起こしできますか？**  
 A: はい。`config.json`の`language`を`"en"`に変更してください。
