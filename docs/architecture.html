@@ -216,9 +216,41 @@
             .flow-container { gap: 15px; }
             .flow-step { min-width: 150px; padding: 15px 20px; }
         }
+        
+        /* ロゴナビゲーション */
+        .logo-nav {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .logo-nav:hover {
+            transform: scale(1.1);
+        }
+        
+        .logo-nav img {
+            width: 30px;
+            height: 30px;
+        }
     </style>
 </head>
 <body>
+    <!-- ロゴナビゲーション -->
+    <a href="index.html" class="logo-nav">
+        <img src="../icon.png" alt="KoeMojiAuto">
+    </a>
+    
     <div class="container">
         <div class="header">
             <h1>🎤 KoeMojiAuto</h1>

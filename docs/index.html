@@ -59,6 +59,12 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             position: relative;
             z-index: 1;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
         }
         
         .logo img {
@@ -235,9 +241,6 @@
             </a>
             <a href="faq.html" class="button button-secondary">
                 FAQ
-            </a>
-            <a href="changelog.html" class="button button-secondary">
-                更新履歴
             </a>
             <a href="https://github.com/infoHiroki/KoeMojiAuto-cli" class="button button-secondary">
                 GitHub
