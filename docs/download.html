@@ -15,7 +15,7 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1a1a1a;
             color: white;
             padding: 40px 20px;
             text-align: center;
@@ -40,6 +40,10 @@
             background: rgba(255,255,255,0.2);
         }
         
+        .nav a.active {
+            background: rgba(255,255,255,0.2);
+        }
+        
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -56,7 +60,7 @@
         
         .download-button {
             display: inline-block;
-            background: #667eea;
+            background: #333;
             color: white;
             padding: 15px 40px;
             border-radius: 50px;
@@ -64,21 +68,21 @@
             font-size: 1.2em;
             font-weight: bold;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         
         .download-button:hover {
-            background: #5a67d8;
+            background: #000;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
         
         .version-info {
-            background: #e3f2fd;
+            background: #f0f0f0;
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #333;
         }
         
         .requirements {
@@ -89,7 +93,7 @@
         }
         
         .requirements h3 {
-            color: #667eea;
+            color: #333;
             margin-bottom: 15px;
         }
         
@@ -130,7 +134,7 @@
         }
         
         .step-number {
-            background: #667eea;
+            background: #333;
             color: white;
             width: 30px;
             height: 30px;
@@ -144,7 +148,7 @@
         }
         
         .step-content h4 {
-            color: #667eea;
+            color: #333;
             margin-bottom: 5px;
         }
         
@@ -177,7 +181,12 @@
         }
         
         .footer a {
-            color: #667eea;
+            color: #999;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: white;
         }
     </style>
 </head>
@@ -189,7 +198,7 @@
         <div class="nav">
             <a href="index.html">ホーム</a>
             <a href="guide.html">使い方</a>
-            <a href="download.html">ダウンロード</a>
+            <a href="download.html" class="active">ダウンロード</a>
             <a href="faq.html">FAQ</a>
             <a href="architecture.html">技術詳細</a>
         </div>
@@ -201,9 +210,9 @@
             <h2>🚀 最新版をダウンロード</h2>
             
             <div class="version-info">
-                <strong>最新バージョン:</strong> v1.0.0<br>
-                <strong>リリース日:</strong> 2025年5月<br>
-                <strong>ファイルサイズ:</strong> 約 50MB（ZIP形式）
+                <strong>配布形式:</strong> ソースコード（GitHub）<br>
+                <strong>動作環境:</strong> Windows 10/11<br>
+                <strong>必要容量:</strong> 約5GB（モデルダウンロード後）
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -294,7 +303,7 @@
         <div class="download-section">
             <h2>📦 その他のダウンロード</h2>
             
-            <h3 style="color: #667eea; margin-top: 20px;">開発者向け</h3>
+            <h3 style="color: #333; margin-top: 20px;">開発者向け</h3>
             <p>ソースコードから実行する場合：</p>
             <div style="background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; margin: 10px 0;">
                 <code style="background: none; color: inherit;">
@@ -305,15 +314,15 @@
                 </code>
             </div>
             
-            <h3 style="color: #667eea; margin-top: 30px;">過去のバージョン</h3>
-            <p>過去のバージョンが必要な場合は、<a href="https://github.com/infoHiroki/KoeMojiAuto-cli/releases" style="color: #667eea;">GitHubのリリースページ</a>からダウンロードできます。</p>
+            <h3 style="color: #333; margin-top: 30px;">過去のバージョン</h3>
+            <p>過去のバージョンが必要な場合は、<a href="https://github.com/infoHiroki/KoeMojiAuto-cli/releases" style="color: #333; font-weight: bold;">GitHubのリリースページ</a>からダウンロードできます。</p>
         </div>
 
         <!-- ライセンス -->
         <div class="download-section">
             <h2>📜 ライセンス</h2>
             <p><strong>個人利用・教育研究目的：</strong> 無料でご利用いただけます</p>
-            <p><strong>商用利用：</strong> 事前にご連絡ください → <a href="mailto:info.hirokitakamura@gmail.com" style="color: #667eea;">info.hirokitakamura@gmail.com</a></p>
+            <p><strong>商用利用：</strong> 事前にご連絡ください → <a href="mailto:info.hirokitakamura@gmail.com" style="color: #333; font-weight: bold;">info.hirokitakamura@gmail.com</a></p>
         </div>
     </div>
 

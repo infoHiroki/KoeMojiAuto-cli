@@ -15,15 +15,15 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1a1a1a;
             color: white;
             padding: 40px 20px;
             text-align: center;
         }
         
         .nav {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             padding: 15px 0;
             position: sticky;
             top: 0;
@@ -39,13 +39,17 @@
         }
         
         .nav a {
-            color: #667eea;
+            color: white;
             text-decoration: none;
             font-weight: bold;
         }
         
         .nav a:hover {
-            color: #764ba2;
+            color: #ccc;
+        }
+        
+        .nav a.active {
+            color: #ccc;
         }        
         .container {
             max-width: 800px;
@@ -54,7 +58,7 @@
         }
         
         h2 {
-            color: #667eea;
+            color: #333;
             margin: 40px 0 20px;
             font-size: 1.8em;
         }
@@ -125,7 +129,7 @@
     <nav class="nav">
         <div class="nav-container">
             <a href="index.html">トップ</a>
-            <a href="guide.html" style="color: #764ba2;">使い方</a>
+            <a href="guide.html" class="active">使い方</a>
             <a href="faq.html">FAQ</a>
             <a href="https://github.com/infoHiroki/KoeMojiAuto-cli">GitHub</a>
         </div>
