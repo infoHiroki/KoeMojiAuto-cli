@@ -36,11 +36,4 @@ echo ========================================
 echo          Setup Complete!
 echo ========================================
 echo.
-echo TO RUN: python koemoji.py
-echo.
-echo FOLDERS:
-echo  input/   - Put audio/video files here
-echo  output/  - Text results appear here
-echo  archive/ - Processed files move here
-echo.
 pause

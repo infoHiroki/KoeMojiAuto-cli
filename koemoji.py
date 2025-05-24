@@ -25,7 +25,7 @@ config = {}
 logger = None
 processing_queue = []
 whisper_model = None
-model_config = None
+model_config = None  # (model_size, compute_type)のタプルまたはNone
 
 # 実行状態を管理するグローバル変数
 is_running = False
@@ -43,7 +43,8 @@ DEFAULT_CONFIG = {
     "scan_interval_minutes": 30,
     "whisper_model": "large",
     "language": "ja",
-    "max_cpu_percent": 95
+    "max_cpu_percent": 95,
+    "compute_type": "int8"  # CPUでの高速処理（GPUある場合は"auto"推奨）
 }
 
 #=======================================================================
@@ -221,21 +222,22 @@ def transcribe_audio(file_path):
     try:
         # モデルサイズを設定
         model_size = config.get("whisper_model", "large")
+        compute_type = config.get("compute_type", "int8")  # config.jsonから読み込み
         
         # モデルが未ロードか設定が変わった場合のみ再ロード
         if (whisper_model is None or 
-            model_config != model_size):
+            model_config != (model_size, compute_type)):
             # モデルロード前に再度停止要求をチェック
             if stop_requested:
                 log_and_print("モデルロードをキャンセル（停止要求）", category="モデル", print_console=False)
                 return None
                 
-            log_and_print(f"モデルロード: Whisper {model_size}", category="モデル", print_console=False)
+            log_and_print(f"モデルロード: Whisper {model_size} (compute_type: {compute_type})", category="モデル", print_console=False)
             
-            # モデルをロード
-            whisper_model = WhisperModel(model_size)
+            # モデルをロード（config.jsonの設定を使用）
+            whisper_model = WhisperModel(model_size, compute_type=compute_type)
             
-            model_config = model_size
+            model_config = (model_size, compute_type)
             
             # モデルロード後にも停止要求をチェック
             if stop_requested:
