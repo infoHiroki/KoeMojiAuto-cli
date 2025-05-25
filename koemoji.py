@@ -540,11 +540,12 @@ def clear_screen():
     """画面をクリアしてタイトルを設定"""
     if IS_WINDOWS:
         os.system('cls')
-        # シンプルに固定タイトル
         os.system('title KoeMoji')
     else:
         os.system('clear')
-        print("\033]0;KoeMoji\007", end="")
+        # macOS/Linuxでのターミナルタイトル設定
+        sys.stdout.write('\033]0;KoeMoji\007')
+        sys.stdout.flush()
 
 def show_recent_logs(lines=10):
     """最新のログを表示"""
