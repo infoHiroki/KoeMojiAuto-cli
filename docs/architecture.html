@@ -10,11 +10,69 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #333333;
             line-height: 1.6;
-            color: #333;
-            background: #1a1a1a;
             min-height: 100vh;
+        }
+        
+        /* 統一ナビゲーションバー */
+        .unified-nav {
+            background-color: #f8f8f8;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #333333;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .nav-logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #333333;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        
+        .nav-links a.active {
+            background-color: #000000;
+            color: #ffffff;
         }
         
         .container {
@@ -25,22 +83,23 @@
         
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
+            background: #000000;
+            color: #ffffff;
+            padding: 40px 20px;
+            margin: -20px -20px 30px -20px;
         }
         
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .tech-stack {
-            background: white;
+            background: #f8f8f8;
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid #e0e0e0;
         }
         
         .tech-grid {
@@ -51,10 +110,10 @@
         }
         
         .tech-item {
-            background: #f8f9fa;
+            background: #ffffff;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #333;
+            border-left: 4px solid #000000;
             transition: transform 0.3s ease;
         }
         
@@ -64,17 +123,17 @@
         }
         
         .tech-item h4 {
-            color: #333;
+            color: #000000;
             margin-bottom: 10px;
         }
         
         .architecture-diagram {
-            background: white;
+            background: #f8f8f8;
             border-radius: 10px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             text-align: center;
+            border: 1px solid #e0e0e0;
         }
         
         .flow-container {
@@ -86,8 +145,8 @@
         }
         
         .flow-step {
-            background: linear-gradient(45deg, #333, #555);
-            color: white;
+            background: #000000;
+            color: #ffffff;
             padding: 20px 30px;
             border-radius: 15px;
             min-width: 200px;
@@ -95,7 +154,8 @@
             position: relative;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
         }
         
         .flow-step:hover {
@@ -110,7 +170,7 @@
             left: 50%;
             transform: translateX(-50%);
             font-size: 24px;
-            color: #333;
+            color: #000000;
             font-weight: bold;
         }
         
@@ -119,11 +179,11 @@
         }
         
         .component-details {
-            background: white;
+            background: #f8f8f8;
             border-radius: 10px;
             padding: 25px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid #e0e0e0;
         }
         
         .component-grid {
@@ -134,7 +194,7 @@
         }
         
         .component {
-            background: #f8f9fa;
+            background: #ffffff;
             border-radius: 10px;
             padding: 20px;
             border: 2px solid transparent;
@@ -143,12 +203,12 @@
         }
         
         .component:hover {
-            border-color: #333;
-            background: #f0f0f0;
+            border-color: #000000;
+            background: #f8f8f8;
         }
         
         .component h3 {
-            color: #333;
+            color: #000000;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
@@ -160,21 +220,22 @@
         }
         
         .code-example {
-            background: #282c34;
-            color: #abb2bf;
+            background: #000000;
+            color: #ffffff;
             padding: 15px;
             border-radius: 5px;
             margin: 10px 0;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             overflow-x: auto;
+            border: 1px solid #333333;
         }
         
         .highlight {
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.2);
             padding: 2px 4px;
             border-radius: 3px;
-            color: #333;
+            color: #ffffff;
             font-weight: bold;
         }
         
@@ -190,13 +251,15 @@
         }
         
         .modal-content {
-            background: white;
+            background: #ffffff;
             margin: 10% auto;
             padding: 30px;
             border-radius: 10px;
             width: 80%;
             max-width: 600px;
             position: relative;
+            border: 2px solid #000000;
+            color: #333333;
         }
         
         .close {
@@ -205,11 +268,11 @@
             top: 15px;
             font-size: 28px;
             cursor: pointer;
-            color: #aaa;
+            color: #666666;
         }
         
         .close:hover {
-            color: #333;
+            color: #000000;
         }
         
         @media (max-width: 768px) {
@@ -219,39 +282,52 @@
             .flow-step { min-width: 150px; padding: 15px 20px; }
         }
         
-        /* ロゴナビゲーション */
-        .logo-nav {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            transition: transform 0.3s ease;
-            text-decoration: none;
+        /* フッター */
+        .footer {
+            background: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
         }
         
-        .logo-nav:hover {
-            transform: scale(1.1);
+        .footer a {
+            color: #ffffff;
+            text-decoration: underline;
         }
         
-        .logo-nav img {
-            width: 30px;
-            height: 30px;
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- ロゴナビゲーション -->
-    <a href="index.html" class="logo-nav">
-        <img src="icon.png" alt="KoeMojiAuto">
-    </a>
+    <!-- 統一ナビゲーション -->
+    <nav class="unified-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="icon.png" alt="KoeMoji Logo">
+                KoeMoji
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">ホーム</a></li>
+                <li><a href="download.html">ダウンロード</a></li>
+                <li><a href="guide.html">使い方</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="architecture.html" class="active">技術仕様</a></li>
+                <li><a href="https://github.com/infoHiroki/KoeMojiAuto-cli" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
     
     <div class="container">
         <div class="header">
@@ -376,7 +452,7 @@
     "output_folder": "output",
     "archive_folder": "archive",
     "whisper_model": "large",
-    "compute_type": "int8",      // int8（高速）またはfp16（高精度）
+    "compute_type": "int8",      // int8（高速）またはfp16（高精度）またはauto（GPU自動選択）
     "language": "ja",
     "max_concurrent_files": 3,
     "max_cpu_percent": 95,
@@ -386,7 +462,8 @@
                 <div class="tech-item">
                     <h4>compute_type設定</h4>
                     <p><strong>int8:</strong> CPU処理に最適化、メモリ効率的<br>
-                    <strong>fp16:</strong> より高精度、GPU使用時推奨</p>
+                    <strong>fp16:</strong> より高精度、GPU使用時推奨<br>
+                    <strong>auto:</strong> システムに応じて最適な設定を自動選択</p>
                 </div>
                 <div class="tech-item">
                     <h4>whisper_model設定</h4>
@@ -415,6 +492,31 @@
                 <div class="tech-item">
                     <h4>🔒 Singleton パターン</h4>
                     <p>Whisperモデルの単一インスタンス管理</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- クロスプラットフォーム対応 -->
+        <div class="component-details">
+            <h2>🌐 クロスプラットフォーム対応</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <h4>🪟 Windows</h4>
+                    <p>• バッチファイル（.bat）による簡易セットアップ</p>
+                    <p>• ショートカット作成スクリプト</p>
+                    <p>• Windows 10/11完全対応</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🍎 macOS</h4>
+                    <p>• Homebrewを使用したPython管理</p>
+                    <p>• zshエイリアス設定スクリプト</p>
+                    <p>• Apple Siliconネイティブ対応</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🐧 Linux</h4>
+                    <p>• 各ディストリビューション対応</p>
+                    <p>• シェルスクリプトによる柔軟な設定</p>
+                    <p>• Dockerコンテナ化対応（予定）</p>
                 </div>
             </div>
         </div>
@@ -803,5 +905,10 @@ def show_recent_logs(lines=10):
             }
         }
     </script>
+    
+    <footer class="footer">
+        <p>© 2025 Hiroki Takamura</p>
+        <p>技術的な質問は <a href="https://github.com/infoHiroki/KoeMojiAuto-cli/issues">GitHub Issues</a> まで</p>
+    </footer>
 </body>
 </html>

@@ -10,251 +10,465 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Segoe UI', sans-serif;
-            line-height: 1.8;
-            color: #333;
-            background: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
         }
         
-        .header {
-            background: #1a1a1a;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-        
-        .nav {
-            background: #333;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            padding: 15px 0;
+        /* 統一ナビゲーションバー */
+        .unified-nav {
+            background-color: #f8f8f8;
+            padding: 1rem 0;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
         .nav-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 2rem;
             display: flex;
-            gap: 30px;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .nav a {
-            color: white;
+        .nav-logo {
+            display: flex;
+            align-items: center;
             text-decoration: none;
+            color: #333333;
+            font-size: 1.5rem;
             font-weight: bold;
         }
         
-        .nav a:hover {
-            color: #ccc;
+        .nav-logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
         }
         
-        .nav a.active {
-            color: #ccc;
-        }        
-        .container {
-            max-width: 800px;
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #333333;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        
+        .nav-links a.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        
+        /* メインコンテンツ */
+        .main-content {
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 3rem 2rem;
         }
         
-        h2 {
-            color: #333;
-            margin: 40px 0 20px;
-            font-size: 1.8em;
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
         }
         
-        h3 {
-            margin: 30px 0 15px;
-            color: #444;
+        .page-header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #000000;
         }
         
-        .step-box {
-            background: white;
-            padding: 30px;
+        /* プラットフォーム選択 */
+        .platform-selector {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .platform-btn {
+            padding: 1rem 2rem;
+            border: 2px solid #000000;
+            background: #ffffff;
+            color: #000000;
             border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .platform-btn:hover {
+            background: #000000;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+        
+        .platform-btn.active {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+        
+        /* ガイドセクション */
+        .guide-section {
+            background: #f8f8f8;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .guide-section h2 {
+            color: #000000;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* ステップ */
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
         }
         
         .step-number {
-            background: #667eea;
-            color: white;
+            background: #000000;
+            color: #ffffff;
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 15px;
             font-weight: bold;
-            font-size: 1.2em;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+            font-size: 1.2rem;
         }
         
         code {
-            background: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 3px;
+            background: #000000;
+            color: #ffffff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
             font-family: 'Courier New', monospace;
         }
         
         .code-block {
-            background: #282c34;
-            color: #abb2bf;
-            padding: 20px;
-            border-radius: 5px;
-            margin: 15px 0;
+            background: #000000;
+            color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 10px;
             overflow-x: auto;
-        }        
-        .tip {
-            background: #e8f4fd;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin: 20px 0;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
         }
         
-        .warning {
-            background: #fff3e0;
-            border-left: 4px solid #ff9800;
-            padding: 15px;
-            margin: 20px 0;
+        .note {
+            background: #f8f8f8;
+            border-left: 4px solid #e57373;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 10px 10px 0;
         }
         
-        /* ロゴナビゲーション */
-        .logo-nav {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            transition: transform 0.3s ease;
+        .note strong {
+            color: #e57373;
+        }
+        
+        /* プラットフォーム別コンテンツ */
+        .platform-content {
+            display: none;
+        }
+        
+        .platform-content.active {
+            display: block;
+        }
+        
+        /* フッター */
+        .footer {
+            background: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+        
+        .footer a {
+            color: #ffffff;
             text-decoration: none;
         }
         
-        .logo-nav:hover {
-            transform: scale(1.1);
-        }
-        
-        .logo-nav img {
-            width: 30px;
-            height: 30px;
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .platform-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .platform-btn {
+                width: 200px;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- ロゴナビゲーション -->
-    <a href="index.html" class="logo-nav">
-        <img src="icon.png" alt="KoeMojiAuto">
-    </a>
-    
-    <div class="header">
-        <h1>使い方ガイド</h1>
-        <p>KoeMojiAutoの基本的な使い方</p>
-    </div>
-    
-    <nav class="nav">
+    <!-- 統一ナビゲーション -->
+    <nav class="unified-nav">
         <div class="nav-container">
-            <a href="index.html">トップ</a>
-            <a href="guide.html" class="active">使い方</a>
-            <a href="faq.html">FAQ</a>
-            <a href="https://github.com/infoHiroki/KoeMojiAuto-cli">GitHub</a>
+            <a href="index.html" class="nav-logo">
+                <img src="icon.png" alt="KoeMoji Logo">
+                KoeMoji
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">ホーム</a></li>
+                <li><a href="download.html">ダウンロード</a></li>
+                <li><a href="guide.html" class="active">使い方</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="architecture.html">技術仕様</a></li>
+                <li><a href="https://github.com/infoHiroki/KoeMojiAuto-cli" target="_blank">GitHub</a></li>
+            </ul>
         </div>
     </nav>
 
-    <div class="container">
-        <h2>📦 インストール</h2>
-        
-        <div class="step-box">
-            <h3><span class="step-number">1</span>必要な環境を確認</h3>
-            <ul style="margin-left: 60px;">
-                <li>Windows 10/11（64bit版）</li>
-                <li>Python 3.9以上</li>
-                <li>8GB以上のメモリ推奨</li>
-                <li>5GB以上の空き容量</li>
-            </ul>
-        </div>        
-        <div class="step-box">
-            <h3><span class="step-number">2</span>ダウンロード & インストール</h3>
-            <p>GitHubからダウンロードして、インストールバッチを実行：</p>
-            <div class="code-block">
-                git clone https://github.com/infoHiroki/KoeMojiAuto-cli.git<br>
-                cd KoeMojiAuto-cli<br>
-                install.bat
-            </div>
-        </div>
-        
-        <div class="step-box">
-            <h3><span class="step-number">3</span>ショートカット作成</h3>
-            <div class="code-block">
-                create_shortcut.bat
-            </div>
-            <p>デスクトップにショートカットが作成されます。</p>
+    <div class="main-content">
+        <div class="page-header">
+            <h1>📖 使い方ガイド</h1>
+            <p>KoeMojiAutoの基本的な使い方を説明します</p>
         </div>
 
-        <h2>🎯 基本的な使い方</h2>
-        
-        <div class="step-box">
-            <h3>1. 音声ファイルを配置</h3>
-            <p><code>input/</code>フォルダに音声・動画ファイルを入れます。</p>
-            <p><strong>対応形式:</strong> MP3, WAV, M4A, FLAC, OGG, AAC, MP4, MOV, AVI</p>
-        </div>
-        
-        <div class="step-box">
-            <h3>2. プログラムを起動</h3>
-            <p>作成したショートカットをダブルクリック、またはコマンドで起動：</p>
-            <div class="code-block">
-                python koemoji.py
-            </div>
-        </div>
-        
-        <div class="step-box">
-            <h3>3. メニューから「1」を選択</h3>
-            <p>メニューが表示されたら「1」を入力して文字起こしを開始します。</p>
-            <div class="tip">
-                <strong>💡 ヒント:</strong> 初回起動時はAIモデルのダウンロードに10-30分かかります。
-            </div>
-        </div>        
-        <div class="step-box">
-            <h3>4. 結果を確認</h3>
-            <p><code>output/</code>フォルダに文字起こし結果（.txtファイル）が保存されます。</p>
-            <p>処理済みの音声ファイルは<code>archive/</code>フォルダに移動されます。</p>
+        <!-- プラットフォーム選択 -->
+        <div class="platform-selector">
+            <button class="platform-btn active" onclick="showPlatform('windows')">
+                🪟 Windows
+            </button>
+            <button class="platform-btn" onclick="showPlatform('mac')">
+                🍎 macOS
+            </button>
+            <button class="platform-btn" onclick="showPlatform('linux')">
+                🐧 Linux
+            </button>
         </div>
 
-        <h2>⚙️ 設定のカスタマイズ</h2>
-        
-        <p><code>config.json</code>を編集して動作をカスタマイズできます：</p>
-        
-        <div class="step-box">
-            <h3>処理速度の調整</h3>
-            <div class="code-block">
-                "whisper_model": "medium"  // small/medium/large から選択
+        <!-- Windows用コンテンツ -->
+        <div id="windows-content" class="platform-content active">
+            <div class="guide-section">
+                <h2>🚀 基本的な使い方（Windows）</h2>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>音声ファイルを配置</h4>
+                        <p><code>input/</code> フォルダに音声・動画ファイルを入れます。</p>
+                        <p>対応形式: MP3, WAV, M4A, FLAC, OGG, AAC, MP4, MOV, AVI</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>プログラムを起動</h4>
+                        <p>デスクトップのショートカットをダブルクリック、または<code>run.bat</code>を実行</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>処理を開始</h4>
+                        <p>メニューで「1」を入力してEnterキーを押します</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>結果を確認</h4>
+                        <p>処理が完了すると<code>output/</code>フォルダにテキストファイルが作成されます</p>
+                        <p>元ファイルは<code>archive/</code>フォルダに移動されます</p>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <!-- Mac用コンテンツ -->
+        <div id="mac-content" class="platform-content">
+            <div class="guide-section">
+                <h2>🍎 基本的な使い方（macOS）</h2>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>音声ファイルを配置</h4>
+                        <p>ターミナルで<code>kmi</code>コマンドを実行するか、<code>input/</code>フォルダに直接ファイルを配置</p>
+                        <p>対応形式: MP3, WAV, M4A, FLAC, OGG, AAC, MP4, MOV, AVI</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>プログラムを起動</h4>
+                        <p>ターミナルで<code>km</code>コマンド、または<code>python3 run.py</code>を実行</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>処理を開始</h4>
+                        <p>メニューで「1」を入力してEnterキーを押します</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>結果を確認</h4>
+                        <p><code>kmo</code>コマンドでFinderが開くか、<code>output/</code>フォルダを直接確認</p>
+                        <p>元ファイルは<code>archive/</code>フォルダに移動されます</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>💡 Mac便利コマンド</strong>
+                <ul style="margin-top: 0.5rem;">
+                    <li><code>km</code> - KoeMojiを起動</li>
+                    <li><code>kmi</code> - 入力フォルダを開く</li>
+                    <li><code>kmo</code> - 出力フォルダを開く</li>
+                    <li><code>kml</code> - ログをリアルタイム表示</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Linux用コンテンツ -->
+        <div id="linux-content" class="platform-content">
+            <div class="guide-section">
+                <h2>🐧 基本的な使い方（Linux）</h2>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>音声ファイルを配置</h4>
+                        <p><code>input/</code>フォルダに音声・動画ファイルを配置</p>
+                        <p>対応形式: MP3, WAV, M4A, FLAC, OGG, AAC, MP4, MOV, AVI</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>プログラムを起動</h4>
+                        <p>ターミナルで<code>python3 run.py</code>を実行</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>処理を開始</h4>
+                        <p>メニューで「1」を入力してEnterキーを押します</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>結果を確認</h4>
+                        <p><code>output/</code>フォルダにテキストファイルが作成されます</p>
+                        <p>元ファイルは<code>archive/</code>フォルダに移動されます</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設定セクション -->
+        <div class="guide-section">
+            <h2>⚙️ 設定のカスタマイズ</h2>
+            
+            <h3>AIモデルの変更</h3>
+            <p><code>config.json</code>の<code>whisper_model</code>を変更することで、処理速度と精度を調整できます：</p>
+            
+            <div class="code-block">
+{
+  "whisper_model": "large",     // large(高精度), medium(バランス), small(高速)
+  "language": "ja",             // 言語設定
+  "scan_interval_minutes": 30,  // フォルダ監視間隔
+  "max_cpu_percent": 95         // CPU使用率上限
+}
+            </div>
+            
+            <h3>処理時間の目安</h3>
             <ul>
-                <li><strong>small:</strong> 最速、精度低</li>
-                <li><strong>medium:</strong> バランス型（推奨）</li>
-                <li><strong>large:</strong> 最高精度、処理遅い</li>
+                <li><strong>small</strong>: 1時間の音声 → 約20-30分</li>
+                <li><strong>medium</strong>: 1時間の音声 → 約40-60分</li>
+                <li><strong>large</strong>: 1時間の音声 → 約60-90分</li>
             </ul>
         </div>
-        
-        <div class="step-box">
-            <h3>高速化設定（CPU環境）</h3>
-            <div class="code-block">
-                "compute_type": "int8"  // CPUでの高速処理
-            </div>
-            <p>GPU搭載PCの場合は<code>"auto"</code>に変更すると自動で最適化されます。</p>
-        </div>
 
-        <div class="warning">
-            <strong>⚠️ 注意:</strong> 処理中にウィンドウを閉じると処理が中断されます。長時間の処理の場合は画面をそのままにしておいてください。
+        <div class="note">
+            <strong>⚠️ 重要な注意事項</strong>
+            <ul style="margin-top: 0.5rem;">
+                <li>初回起動時は、AIモデルのダウンロードに10-30分かかります</li>
+                <li>処理中にプログラムを終了すると、その時点で処理が停止します</li>
+                <li>大きなファイルを処理する場合は、十分な空きディスク容量を確保してください</li>
+            </ul>
         </div>
     </div>
+
+    <footer class="footer">
+        <p>© 2025 Hiroki Takamura</p>
+        <p>問題が発生した場合は <a href="faq.html">FAQ</a> をご確認ください</p>
+    </footer>
+
+    <script>
+        function showPlatform(platform) {
+            // すべてのコンテンツを非表示
+            document.querySelectorAll('.platform-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // すべてのボタンを非アクティブ
+            document.querySelectorAll('.platform-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 選択されたプラットフォームを表示
+            document.getElementById(platform + '-content').classList.add('active');
+            
+            // 選択されたボタンをアクティブに
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 </html>
