@@ -1,6 +1,7 @@
 # KoeMojiAuto
 
-音声・動画ファイルから自動で文字起こしを行うCLIツール。
+音声・動画ファイルから自動で文字起こしを行うクロスプラットフォーム対応CLIツール。
+Windows、macOS、Linuxで動作します。
 
 ## 🚀 クイックスタート（5分で始める）
 
@@ -13,9 +14,13 @@
 ## 📋 導入前の確認
 
 ### 前提条件チェックリスト
-- [ ] Windows 10/11（64bit版）
-- [ ] Python 3.9以上（確認方法: コマンドプロンプトで`python --version`）
-- [ ] pip（確認方法: コマンドプロンプトで`pip --version`）
+- [ ] OS: Windows 10/11、macOS 10.14以上、Linux（Ubuntu 20.04以上推奨）
+- [ ] Python 3.9以上
+  - Windows: コマンドプロンプトで`python --version`
+  - Mac/Linux: ターミナルで`python3 --version`
+- [ ] pip（パッケージマネージャー）
+  - Windows: `pip --version`
+  - Mac/Linux: `pip3 --version`
 - [ ] メモリ 8GB以上推奨
 - [ ] ストレージ 5GB以上の空き容量
 
@@ -27,18 +32,33 @@
 ## 🔧 インストール
 
 ### 自動インストール（推奨）
+
+#### Windows
 1. `install.bat`を**右クリック→管理者として実行**
 2. 「Setup Complete!」と表示されれば完了
-3. エラーが出た場合は下記の「よくあるエラー」を確認
+
+#### Mac/Linux
+1. ターミナルを開く
+2. プロジェクトフォルダに移動
+3. 以下のコマンドを実行:
+```bash
+python3 install.py
+```
 
 ### 手動インストール（自動インストールが失敗した場合）
-```bash
-# 1. コマンドプロンプトを管理者権限で開く
-# 2. プロジェクトフォルダに移動
-cd C:\Users\xxxhi\OneDrive\ドキュメント\Dev\KoeMojiAuto-cli
 
-# 3. 依存関係をインストール
+#### Windows
+```bash
+# コマンドプロンプトを管理者権限で開く
+cd C:\path\to\KoeMojiAuto-cli
 pip install -r requirements.txt
+```
+
+#### Mac/Linux
+```bash
+# ターミナルで実行
+cd /path/to/KoeMojiAuto-cli
+pip3 install -r requirements.txt
 ```
 
 ### Pythonが見つからない場合
@@ -54,7 +74,17 @@ pip install -r requirements.txt
 3. ショートカットを使いやすい場所（タスクバーなど）にピン留め
 
 ### 初回起動
+
+#### Windows
 1. 作成したショートカットをダブルクリック（または`run.bat`を直接実行）
+
+#### Mac/Linux
+1. ターミナルで以下を実行:
+```bash
+python3 run.py
+# または
+./run.sh  # install.pyで作成されている場合
+```
 2. 以下のフォルダが自動作成される：
    - `input/` - 音声ファイルを入れる場所
    - `output/` - 文字起こし結果の保存場所
@@ -190,7 +220,7 @@ A: `koemoji.log`は削除しても問題ありません。自動的に再作成�
 - **使用AI**: OpenAI Whisper（faster-whisper実装）
 - **処理方式**: ローカル処理（インターネット接続不要※初回モデルDL時を除く）
 - **CPU使用率制限**: デフォルト95%（他の作業に影響しないよう制御可能）
-- **対応OS**: Windows 10/11（64bit）
+- **対応OS**: Windows 10/11（64bit）、macOS 10.14+、Linux（Ubuntu 20.04+推奨）
 - **必要Python**: 3.9以上
 
 ## 📌 バージョン情報
