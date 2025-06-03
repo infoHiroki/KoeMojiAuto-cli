@@ -125,7 +125,9 @@ def safe_move_file(source, destination):
     
     # 移動実行
     shutil.move(source, str(dest_path))
-    return dest_path#=======================================================================
+    return dest_path
+
+#=======================================================================
 # 設定管理
 #=======================================================================
 
@@ -199,7 +201,9 @@ def save_config(config_path="config.json"):
     except Exception as e:
         log_and_print(f"設定の保存中にエラーが発生しました: {e}", "error")
         if 'temp_path' in locals() and os.path.exists(temp_path):
-            os.remove(temp_path)#=======================================================================
+            os.remove(temp_path)
+
+#=======================================================================
 # 文字起こし処理
 #=======================================================================
 
@@ -282,7 +286,9 @@ def transcribe_audio(file_path):
     
     except Exception as e:
         log_and_print(f"文字起こし処理中にエラーが発生しました: {e}", "error")
-        return None#=======================================================================
+        return None
+
+#=======================================================================
 # ファイル処理
 #=======================================================================
 
@@ -549,7 +555,7 @@ def clear_screen():
         sys.stdout.write('\033]0;KoeMoji\007')
         sys.stdout.flush()
 
-def show_recent_logs(lines=10):
+def show_recent_logs(lines=15):
     """最新のログを表示"""
     log_path = 'koemoji.log'
     if os.path.exists(log_path):
@@ -594,7 +600,7 @@ def display_auto_mode():
         print("-" * 40)
         print("\n最新ログ:")
         print("-" * 40)
-        show_recent_logs(10)
+        show_recent_logs(15)
         print("-" * 40)
         print("\nCtrl+C で終了")
         
@@ -649,7 +655,9 @@ def display_cli():
                 input("\nEnterキーで戻る...")
     except Exception as e:
         print(f"CLIの実行中にエラーが発生しました: {e}")
-        input("\nEnterキーで終了...")  # エラー時にユーザーに確認を求める#=======================================================================
+        input("\nEnterキーで終了...")  # エラー時にユーザーに確認を求める
+
+#=======================================================================
 # メイン実行部分
 #=======================================================================
 
