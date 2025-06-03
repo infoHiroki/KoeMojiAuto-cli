@@ -44,7 +44,8 @@ DEFAULT_CONFIG = {
     "whisper_model": "large",
     "language": "ja",
     "max_cpu_percent": 95,
-    "compute_type": "int8"  # CPUでの高速処理（GPUある場合は"auto"推奨）
+    "compute_type": "int8",  # CPUでの高速処理（GPUある場合は"auto"推奨）
+    "auto_start": False
 }
 
 #=======================================================================
@@ -614,9 +615,41 @@ def display_menu():
     print("  2. 設定表示  - 現在の設定を確認")
     print("-" * 40)
 
+def display_auto_mode():
+    """自動実行モード時の表示"""
+    global stop_requested
+    
+    try:
+        while not stop_requested:
+            clear_screen()
+            print("=" * 40)
+            print("    K O E M O J I - A U T O (自動実行中)")
+            print("=" * 40)
+            print(f"状態: {get_status_display()}")
+            print("-" * 40)
+            print("\n最新ログ:")
+            print("-" * 40)
+            show_recent_logs(10)
+            print("-" * 40)
+            print("\nCtrl+C で停止")
+            
+            time.sleep(2)  # 2秒ごとに更新
+    except KeyboardInterrupt:
+        stop_processing()
+        log_and_print("\n自動実行モードを停止しました", category="システム")
+
 def display_cli():
     """CLIインターフェースを表示"""
     global is_running
+    
+    # auto_start チェック
+    if config.get("auto_start", False):
+        log_and_print("自動実行モードで起動しました", category="システム")
+        if start_processing():
+            display_auto_mode()
+        else:
+            log_and_print("自動実行の開始に失敗しました", level="error", category="システム")
+        return
     
     try:
         while True:
