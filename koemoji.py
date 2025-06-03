@@ -635,7 +635,9 @@ def display_auto_mode():
             
             time.sleep(2)  # 2秒ごとに更新
     except KeyboardInterrupt:
-        stop_processing()
+        global stop_requested, is_running
+        stop_requested = True
+        is_running = False
         log_and_print("\n自動実行モードを停止しました", category="システム")
 
 def display_cli():
