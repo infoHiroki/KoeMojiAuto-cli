@@ -1,4 +1,5 @@
 # KoeMojiAuto
+[webサイト](https://infohiroki.github.io/KoeMojiAuto-cli/index.html)
 
 音声・動画ファイルから自動で文字起こしを行うクロスプラットフォーム対応CLIツール。
 Windows、macOS、Linuxで動作します。
