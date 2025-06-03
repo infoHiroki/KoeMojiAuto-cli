@@ -617,28 +617,20 @@ def display_menu():
 
 def display_auto_mode():
     """自動実行モード時の表示"""
-    global stop_requested
-    
-    try:
-        while not stop_requested:
-            clear_screen()
-            print("=" * 40)
-            print("    K O E M O J I - A U T O (自動実行中)")
-            print("=" * 40)
-            print(f"状態: {get_status_display()}")
-            print("-" * 40)
-            print("\n最新ログ:")
-            print("-" * 40)
-            show_recent_logs(10)
-            print("-" * 40)
-            print("\nCtrl+C で停止")
-            
-            time.sleep(2)  # 2秒ごとに更新
-    except KeyboardInterrupt:
-        global stop_requested, is_running
-        stop_requested = True
-        is_running = False
-        log_and_print("\n自動実行モードを停止しました", category="システム")
+    while True:
+        clear_screen()
+        print("=" * 40)
+        print("    K O E M O J I - A U T O (自動実行中)")
+        print("=" * 40)
+        print(f"状態: {get_status_display()}")
+        print("-" * 40)
+        print("\n最新ログ:")
+        print("-" * 40)
+        show_recent_logs(10)
+        print("-" * 40)
+        print("\nCtrl+C で終了")
+        
+        time.sleep(2)  # 2秒ごとに更新
 
 def display_cli():
     """CLIインターフェースを表示"""
