@@ -640,7 +640,10 @@ def display_cli():
     if config.get("auto_start", False):
         log_and_print("自動実行モードで起動しました", category="システム")
         if start_processing():
-            display_auto_mode()
+            try:
+                display_auto_mode()
+            except KeyboardInterrupt:
+                print("\n終了しました")
         else:
             log_and_print("自動実行の開始に失敗しました", level="error", category="システム")
         return
