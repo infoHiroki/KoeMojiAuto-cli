@@ -186,11 +186,12 @@ A: `koemoji.log`は削除しても問題ありません。
 ## 📞 サポート
 
 - **GitHub Issues**: https://github.com/infoHiroki/KoeMojiAuto-cli/issues
-- **作者**: [@infoHiroki](https://github.com/infoHiroki)
+- **開発者**: Hiroki Takamura ([@infoHiroki](https://github.com/infoHiroki))
+- **権利者**: ハーメティック株式会社
 
 ## 📄 ライセンス
 
 - **個人・教育利用**: 無料・無制限
-- **商用利用**: info.hirokitakamura@gmail.com へご連絡ください
+- **商用利用**: koemoji2024@gmail.com へご連絡ください
 
 詳細は[LICENSE](LICENSE)ファイルを参照
